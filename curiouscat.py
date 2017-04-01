@@ -26,24 +26,8 @@ def main():
         print ('Usage: spectrogram.py TYPE PATH')
         print ('Types: mel | perc | chroma | beat')
         sys.exit()
-    # check for single song case
-    elif sys.argv[2][-4:] == '.mp3':
-        print(sys.argv[2])
-        sg = Spectrogram(display=True)
-        if sys.argv[1] == 'mel':
-            sg.mel_spectrogram(mp3=sys.argv[2])
-        elif sys.argv[1] == 'perc':
-            sg.perc_spectrogram(mp3=sys.argv[2])
-        elif sys.argv[1] == 'chroma':
-            sg.chromagram(mp3=sys.argv[2])
-        elif sys.argv[1] == 'beat':
-            sg.beat_gram(mp3=sys.argv[2])
-        else:
-            print('Invalid type given:', sys.argv[1])
-            print('Types: mel | perc | chroma | beat')
-            sys.exit()
     #batch directory
-    else:
+    elif sys.argv[2][-4:] != '.mp3':
         songs_list = os.listdir(sys.argv[2])
         sg = Spectrogram()
         for f in songs_list:
@@ -51,6 +35,7 @@ def main():
             spec_master = []
             if sys.argv[1] == 'mel':
                 spec = sg.mel_spectrogram(mp3 = os.path.join(sys.argv[2], f))
+                spec = sg.z_norm(spec)
                 spec_master.append(spec)
             elif sys.argv[1] == 'perc':
                 spec = sg.perc_spectrogram(mp3 = os.path.join(sys.argv[2], f))
@@ -65,6 +50,22 @@ def main():
                 print('Invalid type given:', sys.argv[1])
                 print('Types: mel | perc | chroma | beat')
         print(spec_master)
+    # check for single song case
+    else:
+        print(sys.argv[2])
+        sg = Spectrogram(display=True)
+        if sys.argv[1] == 'mel':
+            sg.mel_spectrogram(mp3=sys.argv[2])
+        elif sys.argv[1] == 'perc':
+            sg.perc_spectrogram(mp3=sys.argv[2])
+        elif sys.argv[1] == 'chroma':
+            sg.chromagram(mp3=sys.argv[2])
+        elif sys.argv[1] == 'beat':
+            sg.beat_gram(mp3=sys.argv[2])
+        else:
+            print('Invalid type given:', sys.argv[1])
+            print('Types: mel | perc | chroma | beat')
+            sys.exit()
 
 if __name__ == '__main__':
     main()
