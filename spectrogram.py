@@ -1,10 +1,3 @@
-'''
-This program takes audio spectrogram data from a song or a whole folder of
-songs and outputs to a numpy array.
-
-Usage: spectrogram.py TYPE PATH
-Types: mel | perc | chroma
-'''
 from __future__ import print_function
 
 import sys #kwargs
@@ -39,29 +32,38 @@ def main():
             beat_gram(mp3=sys.argv[2], display=True)
         else:
             print('Invalid type given:', sys.argv[1])
-            print('Types: mel perc chroma')
+            print('Types: mel | perc | chroma | beat')
+            sys.exit()
     #batch directory
     else:
         songs_list = os.listdir(sys.argv[2])
         for f in songs_list:
             print(f)
+            spec_master = []
             if sys.argv[1] == 'mel':
-                mel_spectrogram(mp3 = os.path.join(sys.argv[2], f), display=True)
+                spec = mel_spectrogram(mp3 = os.path.join(sys.argv[2], f), display=False)
+                spec_master.append(spec)
             elif sys.argv[1] == 'perc':
                 perc_spectrogram(mp3 = os.path.join(sys.argv[2], f), display=True)
             elif sys.argv[1] == 'chroma':
                 chromagram(mp3 = os.path.join(sys.argv[2], f), display=True)
             elif sys.argv[1] == 'beat':
-                beat_gram(mp3=sys.argv[2], display=True)
+                beat_gram(mp3 = os.path.join(sys.argv[2], f), display=True)
             else:
                 print('Invalid type given:', sys.argv[1])
                 print('Types: mel | perc | chroma | beat')
+        print(spec_master)
 
 
 def mel_spectrogram(mp3 = sys.argv[2], display = True):
     '''
     this function displays a mel spectrogram .csv of the mp3 data
-    :return:
+    :return: ('mel', y, sr, S, log_S) 
+    :   'mel': str
+    :   y    : ndarray
+    :   sr   : int
+    :   S    : ndarray
+    :   log_S: ndarray
     '''
     y, sr = librosa.load(path=mp3)
 
@@ -79,7 +81,7 @@ def mel_spectrogram(mp3 = sys.argv[2], display = True):
     librosa.display.specshow(log_S, sr=sr, x_axis='time', y_axis='mel')
 
     # Put a descriptive title on the plot
-    plt.title('mel power spectrogram')
+    plt.title('mel power spectrogram ')
 
     # draw a color bar
     plt.colorbar(format='%+02.0f dB')
@@ -89,7 +91,12 @@ def mel_spectrogram(mp3 = sys.argv[2], display = True):
 
     # display
     if display:
-        plt.show()
+        plt.savefig(mp3+'.png')
+        #plt.show() #save to output
+
+    # generate tuple of S and log_S
+    spec = ('mels', y, sr, S, log_S)
+    return spec
 
 def perc_spectrogram(mp3 = sys.argv[2], display = True):
     y, sr = librosa.load(path=mp3)
@@ -97,8 +104,8 @@ def perc_spectrogram(mp3 = sys.argv[2], display = True):
 
     # What do the spectrograms look like?
     # Let's make and display a mel-scaled power (energy-squared) spectrogram
-    S_harmonic = librosa.feature.melspectrogram(y_harmonic, sr=sr)
-    S_percussive = librosa.feature.melspectrogram(y_percussive, sr=sr)
+    S_harmonic = librosa.feature.melspectrogram(y_harmonic, sr=mp3)
+    S_percussive = librosa.feature.melspectrogram(y_percussive, sr=mp3)
 
     # Convert to log scale (dB). We'll use the peak power as reference.
     log_Sh = librosa.logamplitude(S_harmonic, ref_power=np.max)
@@ -109,7 +116,7 @@ def perc_spectrogram(mp3 = sys.argv[2], display = True):
 
     plt.subplot(2, 1, 1)
     # Display the spectrogram on a mel scale
-    librosa.display.specshow(log_Sh, sr=sr, y_axis='mel')
+    librosa.display.specshow(log_Sh, sr=mp3, y_axis='mel')
 
     # Put a descriptive title on the plot
     plt.title('mel power spectrogram (Harmonic)')
@@ -118,7 +125,7 @@ def perc_spectrogram(mp3 = sys.argv[2], display = True):
     plt.colorbar(format='%+02.0f dB')
 
     plt.subplot(2, 1, 2)
-    librosa.display.specshow(log_Sp, sr=sr, x_axis='time', y_axis='mel')
+    librosa.display.specshow(log_Sp, sr=mp3, x_axis='time', y_axis='mel')
 
     # Put a descriptive title on the plot
     plt.title('mel power spectrogram (Percussive)')
@@ -144,14 +151,14 @@ def chromagram(mp3 = sys.argv[2], display = True):
 
     # We'll use a CQT-based chromagram here.  An STFT-based implementation also exists in chroma_cqt()
     # We'll use the harmonic component to avoid pollution from transients
-    C = librosa.feature.chroma_cqt(y=y_harmonic, sr=sr)
+    C = librosa.feature.chroma_cqt(y=y_harmonic, sr=mp3)
 
     # Make a new figure
     plt.figure(figsize=(12, 4))
 
     # Display the chromagram: the energy in each chromatic pitch class as a function of time
     # To make sure that the colors span the full range of chroma values, set vmin and vmax
-    librosa.display.specshow(C, sr=sr, x_axis='time', y_axis='chroma', vmin=0,
+    librosa.display.specshow(C, sr=mp3, x_axis='time', y_axis='chroma', vmin=0,
                              vmax=1)
 
     plt.title('Chromagram')
