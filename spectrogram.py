@@ -16,9 +16,25 @@ import librosa.display
 def main():
     if len(sys.argv) < 3:
         print ('Error: invalid number of arguments')
-        print ('Usage: spectrogram.py type song.mp3')
-        print ('Types: [mel] ')
+        print ('Usage: spectrogram.py TYPE PATH')
+        print ('Types: mel | perc | chroma | beat')
         sys.exit()
+    # check for single song case
+    elif sys.argv[2][-4:] == '.mp3':
+        print(sys.argv[2])
+        if sys.argv[1] == 'mel':
+            mel_spectrogram(mp3=sys.argv[2], display=True)
+        elif sys.argv[1] == 'perc':
+            perc_spectrogram(mp3=sys.argv[2], display=True)
+        elif sys.argv[1] == 'chroma':
+            chromagram(mp3=sys.argv[2], display=True)
+        elif sys.argv[1] == 'beat':
+            beat_gram(mp3=sys.argv[2], display=True)
+        else:
+            print('Invalid type given:', sys.argv[1])
+            print('Types: mel | perc | chroma | beat')
+            sys.exit()
+    #batch directory
     else:
         songs_list = os.listdir(sys.argv[2])
         for f in songs_list:
@@ -27,10 +43,15 @@ def main():
             if sys.argv[1] == 'mel':
                 spec = mel_spectrogram(mp3 = os.path.join(sys.argv[2], f), display=False)
                 spec_master.append(spec)
-            if sys.argv[1] == 'perc':
+            elif sys.argv[1] == 'perc':
                 perc_spectrogram(mp3 = os.path.join(sys.argv[2], f), display=True)
-            if sys.argv[1] == 'chroma':
+            elif sys.argv[1] == 'chroma':
                 chromagram(mp3 = os.path.join(sys.argv[2], f), display=True)
+            elif sys.argv[1] == 'beat':
+                beat_gram(mp3 = os.path.join(sys.argv[2], f), display=True)
+            else:
+                print('Invalid type given:', sys.argv[1])
+                print('Types: mel | perc | chroma | beat')
         print(spec_master)
 
 
@@ -123,6 +144,11 @@ def chromagram(mp3 = sys.argv[2], display = True):
     y, sr = librosa.load(path=mp3)
     y_harmonic, y_percussive = librosa.effects.hpss(y)
 
+    # What do the spectrograms look like?
+    # Let's make and display a mel-scaled power (energy-squared) spectrogram
+    S_harmonic = librosa.feature.melspectrogram(y_harmonic, sr=sr)
+    S_percussive = librosa.feature.melspectrogram(y_percussive, sr=sr)
+
     # We'll use a CQT-based chromagram here.  An STFT-based implementation also exists in chroma_cqt()
     # We'll use the harmonic component to avoid pollution from transients
     C = librosa.feature.chroma_cqt(y=y_harmonic, sr=mp3)
@@ -143,6 +169,42 @@ def chromagram(mp3 = sys.argv[2], display = True):
     # display
     if display:
         plt.show()
+
+def beat_gram(mp3 = sys.argv[2], display = True):
+    y, sr = librosa.load(path=mp3)
+    y_percussive = librosa.effects.hpss(y)
+
+    # What do the spectrograms look like?
+    # Let's make and display a mel-scaled power (energy-squared) spectrogram
+    S_percussive = librosa.feature.melspectrogram(y_percussive, sr=sr)
+
+    # Convert to log scale (dB). We'll use the peak power as reference.
+    log_Sp = librosa.logamplitude(S_percussive, ref_power=np.max)
+
+    # Now, let's run the beat tracker.
+    # We'll use the percussive component for this part
+    plt.figure(figsize=(12, 6))
+    tempo, beats = librosa.beat.beat_track(y=y_percussive, sr=sr)
+
+    # Let's re-draw the spectrogram, but this time, overlay the detected beats
+    plt.figure(figsize=(12, 4))
+    librosa.display.specshow(log_Sp, sr=sr, x_axis='time', y_axis='mel')
+
+    # Let's draw transparent lines over the beat frames
+    plt.vlines(librosa.frames_to_time(beats),
+               1, 0.5 * sr,
+               colors='w', linestyles='-', linewidth=2, alpha=0.1)
+
+    plt.axis('tight')
+
+    plt.colorbar(format='%+02.0f dB')
+
+    plt.tight_layout()
+
+    # display
+    if display:
+        plt.show()
+
 
 if __name__ == '__main__':
     main()
