@@ -151,7 +151,7 @@ class Spectrogram:
             return
         else:
             y, sr = librosa.load(path=mp3)
-        y_percussive = librosa.effects.hpss(y)
+        y_harmonic, y_percussive = librosa.effects.hpss(y)
 
         # What do the spectrograms look like?
         # Let's make and display a mel-scaled power (energy-squared) spectrogram
