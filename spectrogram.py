@@ -66,8 +66,8 @@ def perc_spectrogram(mp3 = sys.argv[2], display = True):
 
     # What do the spectrograms look like?
     # Let's make and display a mel-scaled power (energy-squared) spectrogram
-    S_harmonic = librosa.feature.melspectrogram(y_harmonic, sr=mp3)
-    S_percussive = librosa.feature.melspectrogram(y_percussive, sr=mp3)
+    S_harmonic = librosa.feature.melspectrogram(y_harmonic, sr=sr)
+    S_percussive = librosa.feature.melspectrogram(y_percussive, sr=sr)
 
     # Convert to log scale (dB). We'll use the peak power as reference.
     log_Sh = librosa.logamplitude(S_harmonic, ref_power=np.max)
@@ -78,7 +78,7 @@ def perc_spectrogram(mp3 = sys.argv[2], display = True):
 
     plt.subplot(2, 1, 1)
     # Display the spectrogram on a mel scale
-    librosa.display.specshow(log_Sh, sr=mp3, y_axis='mel')
+    librosa.display.specshow(log_Sh, sr=sr, y_axis='mel')
 
     # Put a descriptive title on the plot
     plt.title('mel power spectrogram (Harmonic)')
@@ -87,7 +87,7 @@ def perc_spectrogram(mp3 = sys.argv[2], display = True):
     plt.colorbar(format='%+02.0f dB')
 
     plt.subplot(2, 1, 2)
-    librosa.display.specshow(log_Sp, sr=mp3, x_axis='time', y_axis='mel')
+    librosa.display.specshow(log_Sp, sr=sr, x_axis='time', y_axis='mel')
 
     # Put a descriptive title on the plot
     plt.title('mel power spectrogram (Percussive)')
@@ -108,7 +108,7 @@ def chromagram(mp3 = sys.argv[2], display = True):
 
     # We'll use a CQT-based chromagram here.  An STFT-based implementation also exists in chroma_cqt()
     # We'll use the harmonic component to avoid pollution from transients
-    C = librosa.feature.chroma_cqt(y=y_harmonic, sr=mp3)
+    C = librosa.feature.chroma_cqt(y=y_harmonic, sr=sr)
 
     # Make a new figure
     plt.figure(figsize=(12, 4))
