@@ -1,6 +1,7 @@
 from __future__ import print_function
 
 import sys #kwargs
+import os 
 
 import numpy as np 
 import scipy as sp 
@@ -19,12 +20,15 @@ def main():
         print ('Types: [mel] ')
         sys.exit()
     else:
-        if sys.argv[1] == 'mel':
-            mel_spectrogram(display=True)
-        if sys.argv[1] == 'perc':
-            perc_spectrogram(display=True)
-        if sys.argv[1] == 'chroma':
-            chromagram(display=True)
+        songs_list = os.listdir(sys.argv[2])
+        for f in songs_list:
+            print(f)
+            if sys.argv[1] == 'mel':
+                mel_spectrogram(mp3 = os.path.join(sys.argv[2], f), display=True)
+            if sys.argv[1] == 'perc':
+                perc_spectrogram(mp3 = os.path.join(sys.argv[2], f), display=True)
+            if sys.argv[1] == 'chroma':
+                chromagram(mp3 = os.path.join(sys.argv[2], f), display=True)
 
 
 def mel_spectrogram(mp3 = sys.argv[2], display = True):
