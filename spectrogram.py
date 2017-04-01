@@ -23,18 +23,26 @@ def main():
         songs_list = os.listdir(sys.argv[2])
         for f in songs_list:
             print(f)
+            spec_master = []
             if sys.argv[1] == 'mel':
-                mel_spectrogram(mp3 = os.path.join(sys.argv[2], f), display=True)
+                spec = mel_spectrogram(mp3 = os.path.join(sys.argv[2], f), display=False)
+                spec_master.append(spec)
             if sys.argv[1] == 'perc':
                 perc_spectrogram(mp3 = os.path.join(sys.argv[2], f), display=True)
             if sys.argv[1] == 'chroma':
                 chromagram(mp3 = os.path.join(sys.argv[2], f), display=True)
+        print(spec_master)
 
 
 def mel_spectrogram(mp3 = sys.argv[2], display = True):
     '''
     this function displays a mel spectrogram .csv of the mp3 data
-    :return:
+    :return: ('mel', y, sr, S, log_S) 
+    :   'mel': str
+    :   y    : ndarray
+    :   sr   : int
+    :   S    : ndarray
+    :   log_S: ndarray
     '''
     y, sr = librosa.load(path=mp3)
 
@@ -52,7 +60,7 @@ def mel_spectrogram(mp3 = sys.argv[2], display = True):
     librosa.display.specshow(log_S, sr=sr, x_axis='time', y_axis='mel')
 
     # Put a descriptive title on the plot
-    plt.title('mel power spectrogram')
+    plt.title('mel power spectrogram ')
 
     # draw a color bar
     plt.colorbar(format='%+02.0f dB')
@@ -62,7 +70,12 @@ def mel_spectrogram(mp3 = sys.argv[2], display = True):
 
     # display
     if display:
-        plt.show()
+        plt.savefig(mp3+'.png')
+        #plt.show() #save to output
+
+    # generate tuple of S and log_S
+    spec = ('mels', y, sr, S, log_S)
+    return spec
 
 def perc_spectrogram(mp3 = sys.argv[2], display = True):
     y, sr = librosa.load(path=mp3)
