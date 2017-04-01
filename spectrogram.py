@@ -1,3 +1,10 @@
+'''
+This program takes audio spectrogram data from a song or a whole folder of
+songs and outputs to a numpy array.
+
+Usage: spectrogram.py TYPE PATH
+Types: mel | perc | chroma
+'''
 from __future__ import print_function
 
 import sys #kwargs
@@ -17,7 +24,7 @@ def main():
     if len(sys.argv) < 3:
         print ('Error: invalid number of arguments')
         print ('Usage: spectrogram.py TYPE PATH')
-        print ('Types: mel perc chroma')
+        print ('Types: mel | perc | chroma')
         sys.exit()
     # check for single song case
     elif sys.argv[2][-4:] == '.mp3':
@@ -31,6 +38,7 @@ def main():
         else:
             print('Invalid type given:', sys.argv[1])
             print('Types: mel perc chroma')
+    #batch directory
     else:
         songs_list = os.listdir(sys.argv[2])
         for f in songs_list:
@@ -134,7 +142,7 @@ def chromagram(mp3 = sys.argv[2], display = True):
 
     # Display the chromagram: the energy in each chromatic pitch class as a function of time
     # To make sure that the colors span the full range of chroma values, set vmin and vmax
-    librosa.display.specshow(C, sr=mp3, x_axis='time', y_axis='chroma', vmin=0,
+    librosa.display.specshow(C, sr=sr, x_axis='time', y_axis='chroma', vmin=0,
                              vmax=1)
 
     plt.title('Chromagram')
