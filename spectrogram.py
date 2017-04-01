@@ -16,19 +16,34 @@ import librosa.display
 def main():
     if len(sys.argv) < 3:
         print ('Error: invalid number of arguments')
-        print ('Usage: spectrogram.py type song.mp3')
-        print ('Types: [mel] ')
+        print ('Usage: spectrogram.py TYPE PATH')
+        print ('Types: mel perc chroma')
         sys.exit()
+    # check for single song case
+    elif sys.argv[2][-4:] == '.mp3':
+        print(sys.argv[2])
+        if sys.argv[1] == 'mel':
+            mel_spectrogram(mp3=sys.argv[2], display=True)
+        elif sys.argv[1] == 'perc':
+            perc_spectrogram(mp3=sys.argv[2], display=True)
+        elif sys.argv[1] == 'chroma':
+            chromagram(mp3=sys.argv[2], display=True)
+        else:
+            print('Invalid type given:', sys.argv[1])
+            print('Types: mel perc chroma')
     else:
         songs_list = os.listdir(sys.argv[2])
         for f in songs_list:
             print(f)
             if sys.argv[1] == 'mel':
                 mel_spectrogram(mp3 = os.path.join(sys.argv[2], f), display=True)
-            if sys.argv[1] == 'perc':
+            elif sys.argv[1] == 'perc':
                 perc_spectrogram(mp3 = os.path.join(sys.argv[2], f), display=True)
-            if sys.argv[1] == 'chroma':
+            elif sys.argv[1] == 'chroma':
                 chromagram(mp3 = os.path.join(sys.argv[2], f), display=True)
+            else:
+                print('Invalid type given:', sys.argv[1])
+                print('Types: mel perc chroma')
 
 
 def mel_spectrogram(mp3 = sys.argv[2], display = True):
