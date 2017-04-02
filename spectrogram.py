@@ -184,16 +184,6 @@ class Spectrogram:
         if self.display:
             plt.show()
 
-    @staticmethod
-    def z_norm(s):
-        '''
-        takes in spectrogram data and returns z-normalized spectorgram data
-        :return: preproc.scale(S)
-        :			z-normalized ndarray
-        '''
-        import sklearn.preprocessing as preproc
-        return preproc.scale(s)
-
 def main():
     if len(sys.argv) < 3:
         print ('Error: invalid number of arguments')
