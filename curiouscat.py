@@ -29,43 +29,41 @@ def main():
         sys.exit()
 
     if sys.argv[1] == '-train':
+        genre = sys.argv[2]
         songs_list = os.listdir(sys.argv[3])
-        print(songs_list)
+        #print(songs_list)
         sg = Spectrogram(display=False)
         pp = preProcess()
         for f in songs_list:
             #extract the mel perc and chroma specs
             #take all numpy data and concatenate eg: {[mel], [perc], [chroma]}
             #compute each through nn
+            update = update_info(f, 3)
 
-            update = update_info(f, 4)
-
-
+            #mel
             print(update.next(), end='\r')
             spec_master = []
             mel_spec = sg.mel_spectrogram(mp3=os.path.join(sys.argv[3], f))
-            #mel_slice = sg.process_np_data(mel_spec[1]) #process S data
             spec_master.append(mel_spec)
-            #display_sg((spec[0],slice,spec[2],spec[3]))
 
+            #spec
             print(update.next(), end='\r')
             perc_spec = sg.perc_spectrogram(mp3=os.path.join(sys.argv[3], f))
-            #perc_slice = sg.process_np_data(perc_spec[1]) #process logSp data
             spec_master.append(perc_spec)
 
+            #harm
             print(update.next(), end='\r')
             harm_spec = sg.harm_spectrogram(mp3=os.path.join(sys.argv[3], f))
-            #harm_slice = sg.process_np_data(harm_spec[1]) #process logSh data
             spec_master.append(harm_spec)
 
-            print(update.next(), end='\r')
-            chroma_spec = sg.chromagram(mp3=os.path.join(sys.argv[3], f))
-            #chroma_slice = sg.process_np_data(chroma_spec[1]) #process C data
-            spec_master.append(chroma_spec)
+            #chroma
+            # print(update.next(), end='\r')
+            # chroma_spec = sg.chromagram(mp3=os.path.join(sys.argv[3], f))
+            # spec_master.append(chroma_spec)
+            # print("\n\r", end="")
 
-            print("\n\r", end="")
-
-            #print(spec_master)
+            data_tuple = (tuple(spec_master), genre)
+            print(data_tuple)
 
 def display_sg(data_tuple):
     plt.figure(figsize=(12, 4))
@@ -98,8 +96,8 @@ class update_info(object):
 
     def next(self):
         if self.num < self.n:
-            cur = '{0} [{1}/{2}]'.format(self.song, self.num, self.n)
             self.num += 1
+            cur = '{0} [{1}/{2}]'.format(self.song, self.num, self.n)
             return cur
         else:
             raise StopIteration()
