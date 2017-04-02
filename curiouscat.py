@@ -20,6 +20,7 @@ import librosa
 import librosa.display
 
 import rAnalyser
+import rAnalyserLargeTuple
 
 from glob import glob
 
@@ -46,7 +47,8 @@ def main():
                 n_genres += 1
             for f in files:
                 if os.path.splitext(f)[1] == '.mp3':
-                    songs.append((os.path.join(root, f), root[6:]))
+                    print(root[7:])
+                    songs.append((os.path.join(root, f), root[7:]))
                     path = os.path.normpath(os.path.join(root, f))
                     path.split(os.sep)
 
@@ -100,9 +102,49 @@ def main():
 
         #jsonify(master_data)
 
-        ai = rAnalyser.smRegAlog(n)
-        for data in master_data:
-            ai.teachAI(data)
+        all_data = cat_samples(master_data)
+        ai = rAnalyserLargeTuple.smRegAlog(all_data)
+
+        #ai = rAnalyser.smRegAlog() #n
+        # for data in master_data:
+        #     ai.teachAI(data)
+
+def cat_samples(master_data):
+    '''
+    :param: master_data - list of tuples
+            each tuple contains 2 elements: tuple, genre
+                tuple: (mel, perc, harm)
+                genre: str
+    '''
+    # Initialize data lists
+    mel   = []
+    perc  = []
+    harm  = []
+    genre = []
+
+    # tuple -> mel -> numpy arr
+    #print(master_data[0][0][0][1],type(master_data[0][0][0][1]),
+          #sep='\n\n\n')
+    n = master_data[0][0][0][1].shape
+    print(n)
+
+    # Decompose the data into genre and spec data, for list members (!genre) the dtype is ndarray
+    for data in master_data:
+        mel.append(data[0][0][1])
+        perc.append(data[0][1][1])
+        harm.append(data[0][2][1])
+        genre.append(data[1])
+
+    # Now we have lists of either 1D arrays (mel, perc, harm) or str (genre)
+    # Next we convert each list to a ndarray
+    print(np.asarray(mel))
+    mel   = np.reshape(np.asarray(mel),  n) #ncol
+    perc  = np.reshape(np.asarray(perc), n)
+    harm  = np.reshape(np.asarray(harm), n)
+    genre = np.asarray(genre)
+
+    data = ((mel, perc, harm), genre)
+    return data
 
 def jsonify(master_data):
     import codecs, json, time
