@@ -12,7 +12,7 @@ class smRegAI(object):
         self.y = tf.nn.softmax(tf.matmul(self.x, self.W) + self.genreTens)
         #self.testAudio
         #self.testResults
-        self.y_ = tf.placeholder(tf.float32, [None, 3])
+        self.y_ = tf.placeholder(tf.float32, ((1)))
 
     def __del__(self):
         #self.sess.close()
@@ -73,10 +73,10 @@ class smRegAlog(object):
         for num in range(0,3):
             self.numpties[num].predict(songTuple[num])
 
-test = smRegAI(128*8484)
-flatAudi=audioArr.flatten()
-test.teachMe([flatAudi],["dstep"])
-test.teachMe([flatAudi],["dstep"])
-test.predict([flatAudi])
+# test = smRegAI(128*8484)
+# flatAudi=audioArr.flatten()
+# test.teachMe([flatAudi],["dstep"])
+# test.teachMe([flatAudi],["dstep"])
+# test.predict([flatAudi])
 #test.checkAccuracy()
 #audioArr
