@@ -289,6 +289,51 @@ class Spectrogram:
         #print(slice.shape)
         return pp.z_norm(slice)
 
+    def slice_onset(self, y_arr, sr = 22050):
+        '''
+        this function takes in the y data, 
+        '''
+        # load file
+        y, sr = librosa.load('test.mp3')
+
+        # use pre-computed onset envelope
+        o_env = librosa.onset.onset_strength(y, sr=sr)
+        size = o_env.shape[0]
+
+        # take middle 20% and trim the rest
+        start    = int((size*.8)/2)
+        stop     = int(size-start)
+        new_env  = o_env[start:stop]
+        n_chunks = int(len(new_env)/32)
+        if n_chunks%2!=0: # ensure even parity
+            n_chunks+=1
+
+        # split into chunks of 32
+        chunks = []; counter = 0
+        for c in range(n_chunks):
+            chunks.append(new_env[counter:counter+32])
+            counter += 32
+
+        # compute average for each chunk
+        chunk_means = []
+        for chunk in chunks:
+            chunk_means.append(np.mean(chunk))
+
+        # get differences between pairs
+        differences = []
+        for c in range(int(len(chunk_means)/2)):
+            differences.append(chunk_means[2*c]-chunk_means[2*c+1])
+
+        # get max difference and corresponding chunks
+        max_diff = np.max(differences)
+        diff_index, diff_val = max(enumerate(chunk_means), key=operator.itemgetter(1))
+        chunks_oi = (diff_index*2, diff_index*2+1)
+
+        # get slice and return
+        slice = new_env[chunks_oi[0]*32:chunks_oi[1]*32]
+        return slice
+
+
 #old main code
 def main():
     if len(sys.argv) < 3:
