@@ -12,3 +12,13 @@ class preProcess():
         '''
         import sklearn.preprocessing as preproc
         return preproc.scale(s)
+
+    def zerone(s):
+    	'''
+    	normalize data from 0 to 1 feature_range
+    	:return: scaler.fit_transform(s)
+    	:			returns scaled data
+    	'''
+    	from sklearn.preprocessing import MinMaxScaler
+    	scaler = MinMaxScaler(feature_range = (0, 1))
+    	return scaler.fit_transform(s)
