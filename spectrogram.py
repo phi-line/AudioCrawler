@@ -13,11 +13,13 @@ import matplotlib.pyplot as plt
 import librosa
 import librosa.display
 
+from preprocess import preProcess
+
 class Spectrogram:
     def __init__(self, display = False):
         self.display = display
 
-    def mel_spectrogram(self, mp3='test.mp3'):
+    def mel_spectrogram(self, mp3='test.mp3', slice = True):
         '''
         this function displays a mel spectrogram .csv of the mp3 data
         :return: ('mel', y, sr, S, log_S)
@@ -31,6 +33,8 @@ class Spectrogram:
             return
         else:
             y, sr = librosa.load(path=mp3)
+            if slice:
+                y = self.process_y_data(y)
 
         # Let's make and display a mel-scaled power (energy-squared) spectrogram
         S = librosa.feature.melspectrogram(y, sr=sr, n_mels=128)
@@ -38,24 +42,23 @@ class Spectrogram:
         # Convert to log scale (dB). We'll use the peak power as reference.
         log_S = librosa.logamplitude(S, ref_power=np.max)
 
-        # Make a new figure
-        plt.figure(figsize=(12, 4))
-
-        # Display the spectrogram on a mel scale
-        # sample rate and hop length parameters are used to render the time axis
-        librosa.display.specshow(log_S, sr=sr, x_axis='time', y_axis='mel')
-
-        # Put a descriptive title on the plot
-        plt.title('mel power spectrogram ')
-
-        # draw a color bar
-        plt.colorbar(format='%+02.0f dB')
-
-        # Make the figure layout compact
-        plt.tight_layout()
-
         # display
         if self.display:
+            # Make a new figure
+            plt.figure(figsize=(12, 4))
+
+            # Display the spectrogram on a mel scale
+            # sample rate and hop length parameters are used to render the time axis
+            librosa.display.specshow(log_S, sr=sr, x_axis='time', y_axis='mel')
+
+            # Put a descriptive title on the plot
+            plt.title('mel power spectrogram ')
+
+            # draw a color bar
+            plt.colorbar(format='%+02.0f dB')
+
+            # Make the figure layout compact
+            plt.tight_layout()
             plt.show() #save to output
             # plt.savefig(mp3 + '.png')
 
@@ -63,12 +66,15 @@ class Spectrogram:
         spec = ('mels', S, y, sr)
         return spec
 
-    def perc_spectrogram(self, mp3='test.mp3'):
+    def perc_spectrogram(self, mp3='test.mp3', slice = True):
         if mp3[-4:] != '.mp3':
             print("could not load path:", mp3)
             return
         else:
             y, sr = librosa.load(path=mp3)
+            if slice:
+                y = self.process_y_data(y)
+
         y_harmonic, y_percussive = librosa.effects.hpss(y)
 
         # What do the spectrograms look like?
@@ -80,45 +86,48 @@ class Spectrogram:
         log_Sh = librosa.logamplitude(S_harmonic, ref_power=np.max)
         log_Sp = librosa.logamplitude(S_percussive, ref_power=np.max)
 
-        # Make a new figure
-        plt.figure(figsize=(12, 6))
-
-        plt.subplot(2, 1, 1)
-        # Display the spectrogram on a mel scale
-        librosa.display.specshow(log_Sh, sr=sr, y_axis='mel')
-
-        # Put a descriptive title on the plot
-        plt.title('mel power spectrogram (Harmonic)')
-
-        # draw a color bar
-        plt.colorbar(format='%+02.0f dB')
-
-        plt.subplot(2, 1, 2)
-        librosa.display.specshow(log_Sp, sr=sr, x_axis='time', y_axis='mel')
-
-        # Put a descriptive title on the plot
-        plt.title('mel power spectrogram (Percussive)')
-
-        # draw a color bar
-        plt.colorbar(format='%+02.0f dB')
-
-        # Make the figure layout compact
-        plt.tight_layout()
-
         # display
         if self.display:
+            # Make a new figure
+            plt.figure(figsize=(12, 6))
+
+            plt.subplot(2, 1, 1)
+            # Display the spectrogram on a mel scale
+            librosa.display.specshow(log_Sh, sr=sr, y_axis='mel')
+
+            # Put a descriptive title on the plot
+            plt.title('mel power spectrogram (Harmonic)')
+
+            # draw a color bar
+            plt.colorbar(format='%+02.0f dB')
+
+            plt.subplot(2, 1, 2)
+            librosa.display.specshow(log_Sp, sr=sr, x_axis='time',
+                                     y_axis='mel')
+
+            # Put a descriptive title on the plot
+            plt.title('mel power spectrogram (Percussive)')
+
+            # draw a color bar
+            plt.colorbar(format='%+02.0f dB')
+
+            # Make the figure layout compact
+            plt.tight_layout()
             plt.show()
 
         # generate tuple of S and log_S
         spec = ('percussion', log_Sp, y, sr)
         return spec
 
-    def harm_spectrogram(self, mp3='test.mp3'):
+    def harm_spectrogram(self, mp3='test.mp3', slice = True):
         if mp3[-4:] != '.mp3':
             print("could not load path:", mp3)
             return
         else:
             y, sr = librosa.load(path=mp3)
+            if slice:
+                y = self.process_y_data(y)
+
         y_harmonic, y_percussive = librosa.effects.hpss(y)
 
         # What do the spectrograms look like?
@@ -130,45 +139,48 @@ class Spectrogram:
         log_Sh = librosa.logamplitude(S_harmonic, ref_power=np.max)
         log_Sp = librosa.logamplitude(S_percussive, ref_power=np.max)
 
-        # Make a new figure
-        plt.figure(figsize=(12, 6))
-
-        plt.subplot(2, 1, 1)
-        # Display the spectrogram on a mel scale
-        librosa.display.specshow(log_Sh, sr=sr, y_axis='mel')
-
-        # Put a descriptive title on the plot
-        plt.title('mel power spectrogram (Harmonic)')
-
-        # draw a color bar
-        plt.colorbar(format='%+02.0f dB')
-
-        plt.subplot(2, 1, 2)
-        librosa.display.specshow(log_Sp, sr=sr, x_axis='time', y_axis='mel')
-
-        # Put a descriptive title on the plot
-        plt.title('mel power spectrogram (Percussive)')
-
-        # draw a color bar
-        plt.colorbar(format='%+02.0f dB')
-
-        # Make the figure layout compact
-        plt.tight_layout()
-
         # display
         if self.display:
+            # Make a new figure
+            plt.figure(figsize=(12, 6))
+
+            plt.subplot(2, 1, 1)
+            # Display the spectrogram on a mel scale
+            librosa.display.specshow(log_Sh, sr=sr, y_axis='mel')
+
+            # Put a descriptive title on the plot
+            plt.title('mel power spectrogram (Harmonic)')
+
+            # draw a color bar
+            plt.colorbar(format='%+02.0f dB')
+
+            plt.subplot(2, 1, 2)
+            librosa.display.specshow(log_Sp, sr=sr, x_axis='time',
+                                     y_axis='mel')
+
+            # Put a descriptive title on the plot
+            plt.title('mel power spectrogram (Percussive)')
+
+            # draw a color bar
+            plt.colorbar(format='%+02.0f dB')
+
+            # Make the figure layout compact
+            plt.tight_layout()
             plt.show()
 
         # generate tuple of S and log_S
         spec = ('harmonic', log_Sp, y, sr)
         return spec
 
-    def chromagram(self, mp3='test.mp3'):
+    def chromagram(self, mp3='test.mp3', slice = True):
         if mp3[-4:] != '.mp3':
             print("could not load path:", mp3)
             return
         else:
             y, sr = librosa.load(path=mp3)
+            # if slice:
+            #     y = self.process_y_data(y)
+
         y_harmonic, y_percussive = librosa.effects.hpss(y)
 
         # What do the spectrograms look like?
@@ -180,22 +192,21 @@ class Spectrogram:
         # We'll use the harmonic component to avoid pollution from transients
         C = librosa.feature.chroma_cqt(y=y_harmonic, sr=sr)
 
-        # Make a new figure
-        plt.figure(figsize=(12, 4))
-
-        # Display the chromagram: the energy in each chromatic pitch class as a function of time
-        # To make sure that the colors span the full range of chroma values, set vmin and vmax
-        librosa.display.specshow(C, sr=sr, x_axis='time', y_axis='chroma',
-                                 vmin=0,
-                                 vmax=1)
-
-        plt.title('Chromagram')
-        plt.colorbar()
-
-        plt.tight_layout()
-
         # display
         if self.display:
+            # Make a new figure
+            plt.figure(figsize=(12, 4))
+
+            # Display the chromagram: the energy in each chromatic pitch class as a function of time
+            # To make sure that the colors span the full range of chroma values, set vmin and vmax
+            librosa.display.specshow(C, sr=sr, x_axis='time', y_axis='chroma',
+                                     vmin=0,
+                                     vmax=1)
+
+            plt.title('Chromagram')
+            plt.colorbar()
+
+            plt.tight_layout()
             plt.show()
 
         # generate tuple of S and log_S
@@ -242,6 +253,39 @@ class Spectrogram:
         if self.display:
             plt.show()
 
+    def process_y_data(self, y_arr):
+        '''
+        Takes numpy array as a parameter to apply filter to data
+        Filters numpy data down to slice and then applies filter
+        :param np_arr: unprocessed
+        :return: np_array: processed
+        '''
+        PERCENT_REC = .4  # the percentage of the np array to capture from
+        REC_SCALE = 32  # the number of X steps to record from start
+
+        pp = preProcess()
+        half = int(len(y_arr) * PERCENT_REC)
+        slice = y_arr[half:(half + REC_SCALE)]
+        return pp.z_norm(slice)
+
+    def process_np_data(self, np_arr):
+        '''
+        Takes numpy array as a parameter to apply filter to data
+        Filters numpy data down to slice and then applies filter
+        :param np_arr: unprocessed
+        :return: np_array: processed
+        '''
+        PERCENT_REC = .4  # the percentage of the np array to capture from
+        REC_SCALE = 32  # the number of X steps to record from start
+
+        pp = preProcess()
+        print(np_arr.shape)
+        half = int(len(np_arr) * PERCENT_REC)
+        slice = np_arr[:, half:(half + REC_SCALE)]
+        print(slice.shape)
+        return pp.z_norm(slice)
+
+#old main code
 def main():
     if len(sys.argv) < 3:
         print ('Error: invalid number of arguments')

@@ -31,7 +31,8 @@ def main():
     if sys.argv[1] == '-train':
         songs_list = os.listdir(sys.argv[3])
         print(songs_list)
-        sg = Spectrogram()
+        sg = Spectrogram(display=True)
+        pp = preProcess()
         for f in songs_list:
             #extract the mel perc and chroma specs
             #take all numpy data and concatenate eg: {[mel], [perc], [chroma]}
@@ -39,41 +40,23 @@ def main():
             print(f)
             spec_master = []
             mel_spec = sg.mel_spectrogram(mp3=os.path.join(sys.argv[3], f))
-            mel_slice = process_np_data(mel_spec[1]) #process S data
-            spec_master.append(mel_slice)
+            #mel_slice = sg.process_np_data(mel_spec[1]) #process S data
+            spec_master.append(mel_spec)
             #display_sg((spec[0],slice,spec[2],spec[3]))
 
             perc_spec = sg.perc_spectrogram(mp3=os.path.join(sys.argv[3], f))
-            perc_slice = process_np_data(perc_spec[1]) #process logSp data
-            spec_master.append(perc_slice)
+            #perc_slice = sg.process_np_data(perc_spec[1]) #process logSp data
+            spec_master.append(perc_spec)
 
             harm_spec = sg.harm_spectrogram(mp3=os.path.join(sys.argv[3], f))
-            harm_slice = process_np_data(harm_spec[1]) #process logSh data
-            spec_master.append(harm_slice)
+            #harm_slice = sg.process_np_data(harm_spec[1]) #process logSh data
+            spec_master.append(harm_spec)
 
             chroma_spec = sg.chromagram(mp3=os.path.join(sys.argv[3], f))
-            chroma_slice = process_np_data(chroma_spec[1]) #process C data
-            spec_master.append(chroma_slice)
+            #chroma_slice = sg.process_np_data(chroma_spec[1]) #process C data
+            spec_master.append(chroma_spec)
 
-            print(spec_master)
-
-
-PERCENT_REC = .4 #the percentage of the np array to capture from
-REC_SCALE = 32 # the number of X steps to record from start
-
-def process_np_data(np_arr):
-    '''
-    Takes numpy array as a parameter to apply filter to data
-    Filters numpy data down to slice and then applies filter
-    :param np_arr: unprocessed
-    :return: np_array: processed
-    '''
-    pp = preProcess()
-    #print(np_arr.shape)
-    half = int(len(np_arr)*PERCENT_REC)
-    slice = np_arr[:, half:half+REC_SCALE]
-    #print(slice.shape)
-    return pp.z_norm(slice)
+            #print(spec_master)
 
 def display_sg(data_tuple):
     plt.figure(figsize=(12, 4))
