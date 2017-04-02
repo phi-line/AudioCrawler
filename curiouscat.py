@@ -34,6 +34,9 @@ def main():
         #print(songs_list)
         sg = Spectrogram(display=False)
         pp = preProcess()
+
+        master_data = []  # master list of data
+
         for f in songs_list:
             #extract the mel perc and chroma specs
             #take all numpy data and concatenate eg: {[mel], [perc], [chroma]}
@@ -62,8 +65,41 @@ def main():
             # spec_master.append(chroma_spec)
             # print("\n\r", end="")
 
-            data_tuple = (tuple(spec_master), genre)
+            n = mel_spec.shape[1]
+            data_tuple = (tuple(spec_master), genre, n)
+            master_data.append(data_tuple)
             print(data_tuple)
+
+def cat_samples(master_data):
+	'''
+	:param: master_data - list of tuples
+			each tuple contains 2 elements: tuple, genre
+				tuple: (mel, perc, harm)
+				genre: str
+	'''
+	# Initialize data lists
+	mel   = []
+	perc  = []
+	harm  = []
+	genre = []
+	n = len(data[0][0])
+
+	# Decompose the data into genre and spec data, for list members (!genre) the dtype is ndarray
+	for data in master_data:
+		mel.append(data[0][0])
+		perc.append(data[0][1])
+		harm.append(data[0][2])
+		genre.append(data[1])
+
+	# Now we have lists of either 1D arrays (mel, perc, harm) or str (genre)
+	# Next we convert each list to a ndarray
+	mel   = np.reshape(mel,  ncol=n) #vec2matrix
+	perc  = np.reshape(perc, ncol=n)
+	harm  = np.reshape(harm, ncol=n)
+	genre = np.reshape(genre,ncol=n)
+
+	data = ((mel, perc, harm), genre)
+	return data
 
 def display_sg(data_tuple):
     plt.figure(figsize=(12, 4))
