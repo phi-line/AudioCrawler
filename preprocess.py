@@ -2,7 +2,7 @@
 this is a class containing various process filters to apply to numpy data
 '''
 
-class preProcess():
+class preProcess:
     @staticmethod
     def z_norm(s):
         '''
@@ -13,6 +13,7 @@ class preProcess():
         import sklearn.preprocessing as preproc
         return preproc.scale(s)
 
+    @staticmethod
     def zerone(s):
     	'''
     	normalize data from 0 to 1 feature_range
