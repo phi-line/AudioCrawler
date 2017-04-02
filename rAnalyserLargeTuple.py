@@ -31,18 +31,24 @@ class smRegAI(object):
 # genres defined by 0, 1, 2
 #a[3] = vector = 1D
 #[array]  = a[1][3] = 2D
-        hotGenre=numpy.full([40,3],dict[Genre[0]])
+        #hotGenre=numpy.full([40,3],dict[Genre[0]])
+
+        # hardcoded encoder
+        encoder = {'house': 0, 'dnb': 1, 'dstep': 2}
+        genre_encoded = Genre
+        for key, value in encoder.items():
+            genre_encoded[genre_encoded==key] = value
+
 
         cross_entropy = tf.reduce_mean(-tf.reduce_sum(self.y_ * tf.log(self.y), reduction_indices=[1]))
 
         train_step = tf.train.GradientDescentOptimizer(0.5).minimize(cross_entropy)
 
-
-
         tf.global_variables_initializer().run()
 
 
-        self.sess.run(train_step, feed_dict={self.x: SongArr, self.y_:hotGenre})
+        self.sess.run(train_step, feed_dict={self.x: SongArr, self.y_:genre_encoded})
+
     def predict(self,songArr):
        # flatAudio=songArr.flatten()
         prediction=tf.argmax(self.y,1)
