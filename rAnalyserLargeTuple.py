@@ -6,12 +6,10 @@ dict = {"dnb":[1,0,0],"house":[0,1,0],"dstep":[0,0,1]}
 class smRegAI(object):
     def __init__(self,timeLen):
         self.sess= tf.InteractiveSession()
-        self.x = tf.placeholder(tf.float32, [None, timeLen])
-        self.W = tf.Variable(tf.zeros([timeLen, 3]))
-        self.genreTens = tf.Variable(tf.zeros([3]))
+        self.x = tf.placeholder(tf.float32, [timeLen, timeLen])
+        self.W = tf.Variable(tf.zeros([timeLen, timeLen]))
+        self.genreTens = tf.Variable(tf.zeros([timeLen]))
         self.y = tf.nn.softmax(tf.matmul(self.x, self.W) + self.genreTens)
-        #self.testAudio
-        #self.testResults
         self.y_ = tf.placeholder(tf.float32, [None, timeLen])
 
     def __del__(self):
@@ -54,7 +52,7 @@ class smRegAI(object):
        # flatAudio=songArr.flatten()
         prediction=tf.argmax(self.y,1)
         #print (self.sess.run(self.y,feed_dict={self.x: [flatAudio]}))
-        print (prediction.eval(feed_dict={self.x: songArr}))
+        print (prediction.eval(feed_dict={self.x:songArr, self.y_:}))
    # def checkAccuracy(self):
     #    correct_prediction = tf.equal(tf.argmax(self.y,1), tf.argmax(self.y_,1))
      #   accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
@@ -76,11 +74,3 @@ class smRegAlog(object):
     def predict(self,songTuple):
         for num in range(0,3):
             self.numpties[num].predict(songTuple[num])
-
-# test = smRegAI(128*8484)
-# flatAudi=audioArr.flatten()
-# test.teachMe([flatAudi],["dstep"])
-# test.teachMe([flatAudi],["dstep"])
-# test.predict([flatAudi])
-#test.checkAccuracy()
-#audioArr
