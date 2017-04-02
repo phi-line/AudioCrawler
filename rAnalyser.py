@@ -15,16 +15,17 @@ class smRegAI(object):
         self.y_ = tf.placeholder(tf.float32, [None, 3])
 
     def __del__(self):
-        self.sess.close()
+        #self.sess.close()
+        pass
 
 
 #test that file loaded correctly
     def teachMe(self,SongArr,Genre):
        # flatAudio = SongArr.flatten()
 
-        if randint(0,2)==1 :
-            self.testAudio+=[SongArr]
-            self.testResults += [dict[Genre]]
+        #if randint(0,2)==1 :
+        self.testAudio+=[SongArr]
+        self.testResults += [dict[Genre]]
 
       #  audioCol=numpy.array([flatAudio])
 
@@ -44,7 +45,7 @@ class smRegAI(object):
         tf.global_variables_initializer().run()
 
 
-        self.sess.run(train_step, feed_dict={self.x: SongArr, self.y_:[dict[Genre]]})
+        self.sess.run(train_step, feed_dict={self.x: [SongArr], self.y_:[dict[Genre]]})
     def predict(self,songArr):
        # flatAudio=songArr.flatten()
         prediction=tf.argmax(self.y,1)
@@ -53,9 +54,9 @@ class smRegAI(object):
     def checkAccuracy(self):
         correct_prediction = tf.equal(tf.argmax(self.y,1), tf.argmax(self.y_,1))
         accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
-        print(self.sess.run(accuracy, feed_dict={self.x: self.testAudio, self.y_: self.testResults}))
+        return self.sess.run(accuracy, feed_dict={self.x: self.testAudio, self.y_: self.testResults})
 
-class smRegAlog(object):
+class smRegAlog:
     def __init__(self,timeLen):
         #0=mel, 1=perc,2=harm, 3= chroma
         self.numpties = []
@@ -63,13 +64,16 @@ class smRegAlog(object):
             self.numpties.append(smRegAI(timeLen))
     def teachAI(self,songTuple):
         for num in range(0,3):
-            self.numpties[num].teachMe(songTuple[num],songTuple[4])     # teach all teh numpties!!! :D
+            self.numpties[num].teachMe(songTuple[0][num],songTuple[1])     #
+            # teach all teh numpties!!! :D
     def predict(self,songTuple):
         for num in range(0,3):
-            self.numpties[num].predict(songTuple[num])     #
-#test = smRegAI()
-#test.teachMe(audioArr,"dstep")
-#test.teachMe(audioArr,"dstep")
-#test.predict(audioArr)
-#test.checkAccuracy()
+            self.numpties[num].predict(songTuple[0][num])     #
+test = smRegAI(128*8484)
+flataudio = audioArr.flatten()
+
+test.teachMe(flataudio,"dstep")
+test.teachMe(flataudio,"dstep")
+test.predict(flataudio)
+test.checkAccuracy()
 #audioArr

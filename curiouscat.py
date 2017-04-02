@@ -19,15 +19,17 @@ import matplotlib.pyplot as plt
 import librosa
 import librosa.display
 
+import rAnalyser
+
 from glob import glob
 
 from spectrogram import Spectrogram
 from preprocess import preProcess
 
 def main():
-    if len(sys.argv) != 3:
+    if len(sys.argv) != 4:
         print ('Error: invalid number of arguments in', sys.argv)
-        print ('Usage: spectrogram.py -train PATH')
+        print ('Usage: spectrogram.py -train PATH INTERVAL')
         sys.exit()
 
     seed()
@@ -53,14 +55,16 @@ def main():
         shuffle(songs)
         sg = Spectrogram(display=False)
 
+        n = sys.argv[3]
         master_data = []  # master list of data
 
+        i = 1
         for f in songs:
             genre = f[1]
             #extract the mel perc and chroma specs
             #take all numpy data and concatenate eg: {[mel], [perc], [chroma]}
             #compute each through nn
-            update = update_info(f[0], 3)
+            update = update_info(f[0], i, 3)
 
             #mel
             print(update.next(), end='\r')
@@ -82,12 +86,19 @@ def main():
             # print(update.next(), end='\r')
             # chroma_spec = sg.chromagram(mp3=os.path.join(sys.argv[2], f))
             # spec_master.append(chroma_spec)
-            # print("\n\r", end="")
+            print("\n\r", end="")
+            i += 1
 
-            n = mel_spec[1].shape[1]
+            #n = mel_spec[1].shape[1]
+
+            #((mel, perc, harm), genre, n)
             data_tuple = (tuple(spec_master), genre, n)
             master_data.append(data_tuple)
             #print(data_tuple)
+
+        ai = rAnalyser.smRegAlog(n)
+        for data in master_data:
+            ai.teachAI(data)
 
 def cat_samples(master_data):
 	'''
@@ -138,9 +149,10 @@ def display_sg(data_tuple):
     plt.show()
 
 class update_info(object):
-    def __init__(self, song, n):
+    def __init__(self, song, i, step):
         self.song = song
-        self.n = n
+        self.n = step
+        self.i = i
         self.num = 0
 
     def __iter__(self):
@@ -152,7 +164,8 @@ class update_info(object):
     def next(self):
         if self.num < self.n:
             self.num += 1
-            cur = '{0} [{1}/{2}]'.format(self.song, self.num, self.n)
+            cur = ' {} | {} [{}/{}]'.format(self.i, self.song, self.num,
+                                            self.n)
             return cur
         else:
             raise StopIteration()
