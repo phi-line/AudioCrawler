@@ -5,8 +5,9 @@ Also, cats have great hearing hence curiouscat.py
 
 from __future__ import print_function
 
-import sys #args
 import os
+import sys #args
+from random import seed, shuffle
 
 import numpy as np
 import scipy as sp
@@ -18,57 +19,75 @@ import matplotlib.pyplot as plt
 import librosa
 import librosa.display
 
+from glob import glob
+
 from spectrogram import Spectrogram
 from preprocess import preProcess
 
 def main():
-    if len(sys.argv) != 4:
+    if len(sys.argv) != 3:
         print ('Error: invalid number of arguments in', sys.argv)
-        print ('Usage: spectrogram.py -train GENRE PATH')
-        print ('Genres: dnb | house | dstep')
+        print ('Usage: spectrogram.py -train PATH')
         sys.exit()
 
+    seed()
     if sys.argv[1] == '-train':
-        genre = sys.argv[2]
-        songs_list = os.listdir(sys.argv[3])
-        #print(songs_list)
+        #needs to recursively add in sound data
+        # songs = {os.path.join(r, f):s for r, s, files in os.walk(
+        #     sys.argv[2]) for f in files if os.path.splitext(f)[1] == '.mp3'}
+
+        songs = []
+        walk_dir = os.path.abspath(sys.argv[2])
+        n_genres = 0
+        for root, subs, files in os.walk(sys.argv[2]): #rootdir
+            for sub in subs:
+                n_genres += 1
+            for f in files:
+                if os.path.splitext(f)[1] == '.mp3':
+                    songs.append((os.path.join(root, f), root[6:]))
+                    path = os.path.normpath(os.path.join(root, f))
+                    path.split(os.sep)
+
+        #songs = os.listdir(sys.argv[3])
+        print ('Loaded {} songs and {} genres'.format(len(songs),n_genres))
+        shuffle(songs)
         sg = Spectrogram(display=False)
-        pp = preProcess()
 
         master_data = []  # master list of data
 
-        for f in songs_list:
+        for f in songs:
+            genre = f[1]
             #extract the mel perc and chroma specs
             #take all numpy data and concatenate eg: {[mel], [perc], [chroma]}
             #compute each through nn
-            update = update_info(f, 3)
+            update = update_info(f[0], 3)
 
             #mel
             print(update.next(), end='\r')
             spec_master = []
-            mel_spec = sg.mel_spectrogram(mp3=os.path.join(sys.argv[3], f))
+            mel_spec = sg.mel_spectrogram(mp3=f[0])
             spec_master.append(mel_spec)
 
             #spec
             print(update.next(), end='\r')
-            perc_spec = sg.perc_spectrogram(mp3=os.path.join(sys.argv[3], f))
+            perc_spec = sg.perc_spectrogram(mp3=f[0])
             spec_master.append(perc_spec)
 
             #harm
             print(update.next(), end='\r')
-            harm_spec = sg.harm_spectrogram(mp3=os.path.join(sys.argv[3], f))
+            harm_spec = sg.harm_spectrogram(mp3=f[0])
             spec_master.append(harm_spec)
 
             #chroma
             # print(update.next(), end='\r')
-            # chroma_spec = sg.chromagram(mp3=os.path.join(sys.argv[3], f))
+            # chroma_spec = sg.chromagram(mp3=os.path.join(sys.argv[2], f))
             # spec_master.append(chroma_spec)
             # print("\n\r", end="")
 
-            n = mel_spec.shape[1]
+            n = mel_spec[1].shape[1]
             data_tuple = (tuple(spec_master), genre, n)
             master_data.append(data_tuple)
-            print(data_tuple)
+            #print(data_tuple)
 
 def cat_samples(master_data):
 	'''
