@@ -33,32 +33,28 @@ def main():
         songs_list = os.listdir(sys.argv[3])
         sg = Spectrogram()
         for f in songs_list:
+            #extract the mel perc and chroma specs
+            #take all numpy data and concatenate eg: {[mel], [perc], [chroma]}
+            #compute each through nn
             print(f)
             spec_master = []
             if sys.argv[2] == 'mel':
                 spec = sg.mel_spectrogram(mp3=os.path.join(sys.argv[3], f))
-                slice = process_np_data(spec[1])
+                slice = process_np_data(spec[1]) #process S data
                 spec_master.append(slice)
-
-                #display_sg((spec[0],slice,spec[2]))
+                #display_sg((spec[0],slice,spec[2],spec[3]))
             elif sys.argv[2] == 'perc':
                 spec = sg.perc_spectrogram(mp3=os.path.join(sys.argv[3], f))
                 slice = process_np_data(spec[1])
                 spec_master.append(slice)
-
-                #display_sg((spec[0],slice,spec[2]))
             elif sys.argv[2] == 'chroma':
                 spec = sg.chromagram(mp3=os.path.join(sys.argv[3], f))
                 slice = process_np_data(spec[1])
                 spec_master.append(slice)
-
-                #display_sg((spec[0],slice,spec[2]))
             elif sys.argv[2] == 'beat':
                 spec = sg.beat_gram(mp3=os.path.join(sys.argv[3], f))
                 slice = process_np_data(spec[1])
                 spec_master.append(slice)
-
-                #display_sg((spec[0],slice,spec[2]))
             else:
                 print('Invalid type given:', sys.argv[1])
                 print('Types: mel | perc | chroma | beat')
@@ -86,7 +82,7 @@ def display_sg(data_tuple):
     plt.figure(figsize=(12, 4))
     # Display the spectrogram on a mel scale
     # sample rate and hop length parameters are used to render the time axis
-    librosa.display.specshow(data_tuple[1], sr=data_tuple[2], x_axis='time',
+    librosa.display.specshow(data_tuple[1], sr=data_tuple[3], x_axis='time',
                              y_axis='mel')
 
     # Put a descriptive title on the plot

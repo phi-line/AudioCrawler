@@ -24,7 +24,6 @@ class Spectrogram:
         :   'mel': str
         :   S    : ndarray
         :   y    : ndarray
-        :   log_S: ndarray
         :   sr   : int
         '''
         if mp3[-4:] != '.mp3':
@@ -61,8 +60,7 @@ class Spectrogram:
             # plt.savefig(mp3 + '.png')
 
         # generate tuple of S and log_S
-        #spec = ('mels', S, sr, y, log_S)
-        spec = ('mels', S, sr)
+        spec = ('mels', S, y, sr,)
         return spec
 
     def perc_spectrogram(self, mp3='test.mp3'):
@@ -111,6 +109,60 @@ class Spectrogram:
         if self.display:
             plt.show()
 
+        # generate tuple of S and log_S
+        spec = ('percussion', log_Sp, y, sr,)
+        return spec
+
+    def harm_spectrogram(self, mp3='test.mp3'):
+        if mp3[-4:] != '.mp3':
+            print("could not load path:", mp3)
+            return
+        else:
+            y, sr = librosa.load(path=mp3)
+        y_harmonic, y_percussive = librosa.effects.hpss(y)
+
+        # What do the spectrograms look like?
+        # Let's make and display a mel-scaled power (energy-squared) spectrogram
+        S_harmonic = librosa.feature.melspectrogram(y_harmonic, sr=mp3)
+        S_percussive = librosa.feature.melspectrogram(y_percussive, sr=mp3)
+
+        # Convert to log scale (dB). We'll use the peak power as reference.
+        log_Sh = librosa.logamplitude(S_harmonic, ref_power=np.max)
+        log_Sp = librosa.logamplitude(S_percussive, ref_power=np.max)
+
+        # Make a new figure
+        plt.figure(figsize=(12, 6))
+
+        plt.subplot(2, 1, 1)
+        # Display the spectrogram on a mel scale
+        librosa.display.specshow(log_Sh, sr=mp3, y_axis='mel')
+
+        # Put a descriptive title on the plot
+        plt.title('mel power spectrogram (Harmonic)')
+
+        # draw a color bar
+        plt.colorbar(format='%+02.0f dB')
+
+        plt.subplot(2, 1, 2)
+        librosa.display.specshow(log_Sp, sr=mp3, x_axis='time', y_axis='mel')
+
+        # Put a descriptive title on the plot
+        plt.title('mel power spectrogram (Percussive)')
+
+        # draw a color bar
+        plt.colorbar(format='%+02.0f dB')
+
+        # Make the figure layout compact
+        plt.tight_layout()
+
+        # display
+        if self.display:
+            plt.show()
+
+        # generate tuple of S and log_S
+        spec = ('harmonic', log_Sp, y, sr)
+        return spec
+
     def chromagram(self, mp3='test.mp3'):
         if mp3[-4:] != '.mp3':
             print("could not load path:", mp3)
@@ -146,6 +198,11 @@ class Spectrogram:
         if self.display:
             plt.show()
 
+        # generate tuple of S and log_S
+        spec = ('chroma', C, y, sr)
+        return spec
+
+    #depreciated - not using beat diagram
     def beat_gram(self, mp3='test.mp3'):
         if mp3[-4:] != '.mp3':
             print("could not load path:", mp3)
