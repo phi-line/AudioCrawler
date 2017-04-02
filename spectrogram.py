@@ -331,12 +331,12 @@ class Spectrogram:
         start_percent = (start+chunks_oi[0]*32)/size
         stop_percent  = 1-(size-(start+chunks_oi[1]*32))/size
 
-        y_length = y.shape[0]
+        y_length = y_arr.shape[0]
         y_start  = int(y_length*start_percent)
         y_stop   = int(y_length*stop_percent)
 
         # get slice and return
-        slice = y[y_start:y_stop]
+        slice = y_arr[y_start:y_stop]
         return slice
 
 
