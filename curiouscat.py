@@ -52,8 +52,9 @@ def main():
 
         #songs = os.listdir(sys.argv[3])
         print ('Loaded {} songs and {} genres'.format(len(songs),n_genres))
-        shuffle(songs)
-        sg = Spectrogram(display=False)
+        #shuffle(songs)
+        sg = Spectrogram(display=False, trim=True, slice=False,
+                         offset=50, duration=90)
 
         n = sys.argv[3]
         master_data = []  # master list of data
@@ -86,7 +87,8 @@ def main():
             # print(update.next(), end='\r')
             # chroma_spec = sg.chromagram(mp3=os.path.join(sys.argv[2], f))
             # spec_master.append(chroma_spec)
-            print("\n\r", end="")
+            #print("\n\r", end="")
+            sys.stdout.write('\x1b[2K\r')
             i += 1
 
             #n = mel_spec[1].shape[1]
@@ -96,7 +98,7 @@ def main():
             master_data.append(data_tuple)
             #print(data_tuple)
 
-        jsonify(master_data)
+        #jsonify(master_data)
 
         ai = rAnalyser.smRegAlog(n)
         for data in master_data:
@@ -152,7 +154,7 @@ class update_info(object):
     def next(self):
         if self.num < self.n:
             self.num += 1
-            cur = ' {} | {} [{}/{}]'.format(self.i, self.song, self.num,
+            cur = ' | {} | {} [{}/{}]'.format(self.i, self.song, self.num,
                                             self.n)
             return cur
         else:

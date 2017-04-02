@@ -13,16 +13,21 @@ import matplotlib.pyplot as plt
 import librosa
 import librosa.display
 
+import operator
+
 from preprocess import preProcess
 
 class Spectrogram:
-    def __init__(self, display = False, trim = True, offset = 60, duration=60):
+    def __init__(self, display = False, trim = True, slice = False, offset =
+    30,
+                 duration=60):
         self.display = display
         self.trim = trim
+        self.slice = slice
         self.offset = offset
         self.duration = duration
 
-    def mel_spectrogram(self, mp3='test.mp3', slice = True):
+    def mel_spectrogram(self, mp3='test.mp3'):
         '''
         this function displays a mel spectrogram .csv of the mp3 data
         :return: ('mel', y, sr, S, log_S)
@@ -40,17 +45,16 @@ class Spectrogram:
                                     duration=self.duration)
             else: y, sr = librosa.load(path=mp3)
 
-            if slice:
-                #y = self.slice_onset(y)
-                pass
+            if self.slice:
+                y = self.slice_onset(y)
 
         # Let's make and display a mel-scaled power (energy-squared) spectrogram
         S = librosa.feature.melspectrogram(y, sr=sr, n_mels=128)
 
-        if slice:
-            S = self.process_np_data(S)
-            # pp = preProcess
-            # S = pp.z_norm(S)
+        if self.slice:
+            pp = preProcess
+            S = pp.z_norm(S)
+        else: S = self.process_np_data(S)
 
         # Convert to log scale (dB). We'll use the peak power as reference.
         log_S = librosa.logamplitude(S, ref_power=np.max)
@@ -89,6 +93,9 @@ class Spectrogram:
                                     duration=self.duration)
             else: y, sr = librosa.load(path=mp3)
 
+            if self.slice:
+                y = self.slice_onset(y)
+
         y_harmonic, y_percussive = librosa.effects.hpss(y)
 
         # What do the spectrograms look like?
@@ -96,10 +103,11 @@ class Spectrogram:
         #S_harmonic = librosa.feature.melspectrogram(y_harmonic, sr=sr)
         S_percussive = librosa.feature.melspectrogram(y_percussive, sr=sr)
 
-        if slice:
+        if self.slice:
+            pp = preProcess
+            S_percussive = pp.z_norm(S_percussive)
+        else:
             S_percussive = self.process_np_data(S_percussive)
-            # pp = preProcess
-            # S_percussive = pp.z_norm(S_percussive)
 
         # Convert to log scale (dB). We'll use the peak power as reference.
         #log_Sh = librosa.logamplitude(S_harmonic, ref_power=np.max)
@@ -148,6 +156,9 @@ class Spectrogram:
                                     duration=self.duration)
             else: y, sr = librosa.load(path=mp3)
 
+            if self.slice:
+                y = self.slice_onset(y)
+
         y_harmonic, y_percussive = librosa.effects.hpss(y)
 
         # What do the spectrograms look like?
@@ -155,10 +166,11 @@ class Spectrogram:
         S_harmonic = librosa.feature.melspectrogram(y_harmonic, sr=sr)
         #S_percussive = librosa.feature.melspectrogram(y_percussive, sr=sr)
 
-        if slice:
+        if self.slice:
+            pp = preProcess
+            S_harmonic = pp.z_norm(S_harmonic)
+        else:
             S_harmonic = self.process_np_data(S_harmonic)
-            # pp = preProcess
-            # S_harmonic = pp.z_norm(S_harmonic)
 
         # Convert to log scale (dB). We'll use the peak power as reference.
         log_Sh = librosa.logamplitude(S_harmonic, ref_power=np.max)
@@ -321,8 +333,8 @@ class Spectrogram:
         size = o_env.shape[0]
 
         # take middle 20% and trim the rest
-        start    = int((size*.3)/2)
-        stop     = int(size-start)
+        start    = 0 #int((size*.3)/2)
+        stop     = size #int(size-start)
         new_env  = o_env[start:stop]
         n_chunks = int(len(new_env)/32)
         if n_chunks%2!=0: # ensure even parity
