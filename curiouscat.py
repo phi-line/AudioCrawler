@@ -5,8 +5,9 @@ Also, cats have great hearing hence curiouscat.py
 
 from __future__ import print_function
 
-import sys #args
 import os
+import sys #args
+from random import seed, shuffle
 
 import numpy as np
 import scipy as sp
@@ -18,54 +19,117 @@ import matplotlib.pyplot as plt
 import librosa
 import librosa.display
 
+import rAnalyser
+
+from glob import glob
+
 from spectrogram import Spectrogram
 from preprocess import preProcess
 
 def main():
     if len(sys.argv) != 4:
         print ('Error: invalid number of arguments in', sys.argv)
-        print ('Usage: spectrogram.py -train GENRE PATH')
-        print ('Genres: dnb | house | dstep')
+        print ('Usage: spectrogram.py -train PATH INTERVAL')
         sys.exit()
 
+    seed()
     if sys.argv[1] == '-train':
-        songs_list = os.listdir(sys.argv[3])
-        print(songs_list)
+        #needs to recursively add in sound data
+        # songs = {os.path.join(r, f):s for r, s, files in os.walk(
+        #     sys.argv[2]) for f in files if os.path.splitext(f)[1] == '.mp3'}
+
+        songs = []
+        walk_dir = os.path.abspath(sys.argv[2])
+        n_genres = 0
+        for root, subs, files in os.walk(sys.argv[2]): #rootdir
+            for sub in subs:
+                n_genres += 1
+            for f in files:
+                if os.path.splitext(f)[1] == '.mp3':
+                    songs.append((os.path.join(root, f), root[6:]))
+                    path = os.path.normpath(os.path.join(root, f))
+                    path.split(os.sep)
+
+        #songs = os.listdir(sys.argv[3])
+        print ('Loaded {} songs and {} genres'.format(len(songs),n_genres))
+        shuffle(songs)
         sg = Spectrogram(display=False)
-        pp = preProcess()
-        for f in songs_list:
+
+        n = sys.argv[3]
+        master_data = []  # master list of data
+
+        i = 1
+        for f in songs:
+            genre = f[1]
             #extract the mel perc and chroma specs
             #take all numpy data and concatenate eg: {[mel], [perc], [chroma]}
             #compute each through nn
+            update = update_info(f[0], i, 3)
 
-            update = update_info(f, 4)
-
-
+            #mel
             print(update.next(), end='\r')
             spec_master = []
-            mel_spec = sg.mel_spectrogram(mp3=os.path.join(sys.argv[3], f))
-            #mel_slice = sg.process_np_data(mel_spec[1]) #process S data
+            mel_spec = sg.mel_spectrogram(mp3=f[0])
             spec_master.append(mel_spec)
-            #display_sg((spec[0],slice,spec[2],spec[3]))
 
+            #spec
             print(update.next(), end='\r')
-            perc_spec = sg.perc_spectrogram(mp3=os.path.join(sys.argv[3], f))
-            #perc_slice = sg.process_np_data(perc_spec[1]) #process logSp data
+            perc_spec = sg.perc_spectrogram(mp3=f[0])
             spec_master.append(perc_spec)
 
+            #harm
             print(update.next(), end='\r')
-            harm_spec = sg.harm_spectrogram(mp3=os.path.join(sys.argv[3], f))
-            #harm_slice = sg.process_np_data(harm_spec[1]) #process logSh data
+            harm_spec = sg.harm_spectrogram(mp3=f[0])
             spec_master.append(harm_spec)
 
-            print(update.next(), end='\r')
-            chroma_spec = sg.chromagram(mp3=os.path.join(sys.argv[3], f))
-            #chroma_slice = sg.process_np_data(chroma_spec[1]) #process C data
-            spec_master.append(chroma_spec)
-
+            #chroma
+            # print(update.next(), end='\r')
+            # chroma_spec = sg.chromagram(mp3=os.path.join(sys.argv[2], f))
+            # spec_master.append(chroma_spec)
             print("\n\r", end="")
+            i += 1
 
-            #print(spec_master)
+            #n = mel_spec[1].shape[1]
+
+            #((mel, perc, harm), genre, n)
+            data_tuple = (tuple(spec_master), genre, n)
+            master_data.append(data_tuple)
+            #print(data_tuple)
+
+        ai = rAnalyser.smRegAlog(n)
+        for data in master_data:
+            ai.teachAI(data)
+
+def cat_samples(master_data):
+	'''
+	:param: master_data - list of tuples
+			each tuple contains 2 elements: tuple, genre
+				tuple: (mel, perc, harm)
+				genre: str
+	'''
+	# Initialize data lists
+	mel   = []
+	perc  = []
+	harm  = []
+	genre = []
+	n = len(data[0][0])
+
+	# Decompose the data into genre and spec data, for list members (!genre) the dtype is ndarray
+	for data in master_data:
+		mel.append(data[0][0])
+		perc.append(data[0][1])
+		harm.append(data[0][2])
+		genre.append(data[1])
+
+	# Now we have lists of either 1D arrays (mel, perc, harm) or str (genre)
+	# Next we convert each list to a ndarray
+	mel   = np.reshape(mel,  ncol=n) #vec2matrix
+	perc  = np.reshape(perc, ncol=n)
+	harm  = np.reshape(harm, ncol=n)
+	genre = np.reshape(genre,ncol=n)
+
+	data = ((mel, perc, harm), genre)
+	return data
 
 def display_sg(data_tuple):
     plt.figure(figsize=(12, 4))
@@ -85,9 +149,10 @@ def display_sg(data_tuple):
     plt.show()
 
 class update_info(object):
-    def __init__(self, song, n):
+    def __init__(self, song, i, step):
         self.song = song
-        self.n = n
+        self.n = step
+        self.i = i
         self.num = 0
 
     def __iter__(self):
@@ -98,8 +163,9 @@ class update_info(object):
 
     def next(self):
         if self.num < self.n:
-            cur = '{0} [{1}/{2}]'.format(self.song, self.num, self.n)
             self.num += 1
+            cur = ' {} | {} [{}/{}]'.format(self.i, self.song, self.num,
+                                            self.n)
             return cur
         else:
             raise StopIteration()

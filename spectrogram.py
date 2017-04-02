@@ -93,17 +93,17 @@ class Spectrogram:
             # Make a new figure
             plt.figure(figsize=(12, 6))
 
-            plt.subplot(2, 1, 1)
-            # Display the spectrogram on a mel scale
-            #librosa.display.specshow(log_Sh, sr=sr, y_axis='mel')
+            # plt.subplot(2, 1, 1)
+            # # Display the spectrogram on a mel scale
+            # #librosa.display.specshow(log_Sh, sr=sr, y_axis='mel')
+            #
+            # # Put a descriptive title on the plot
+            # plt.title('mel power spectrogram (Harmonic)')
+            #
+            # # draw a color bar
+            # plt.colorbar(format='%+02.0f dB')
 
-            # Put a descriptive title on the plot
-            plt.title('mel power spectrogram (Harmonic)')
-
-            # draw a color bar
-            plt.colorbar(format='%+02.0f dB')
-
-            plt.subplot(2, 1, 2)
+            # plt.subplot(2, 1, 2)
             librosa.display.specshow(log_Sp, sr=sr, x_axis='time',
                                      y_axis='mel')
 
@@ -147,7 +147,7 @@ class Spectrogram:
             # Make a new figure
             plt.figure(figsize=(12, 6))
 
-            plt.subplot(2, 1, 1)
+            # plt.subplot(2, 1, 1)
             # Display the spectrogram on a mel scale
             librosa.display.specshow(log_Sh, sr=sr, y_axis='mel')
 
@@ -157,15 +157,15 @@ class Spectrogram:
             # draw a color bar
             plt.colorbar(format='%+02.0f dB')
 
-            plt.subplot(2, 1, 2)
-            # librosa.display.specshow(log_Sp, sr=sr, x_axis='time',
-            #                          y_axis='mel')
-
-            # Put a descriptive title on the plot
-            plt.title('mel power spectrogram (Percussive)')
-
-            # draw a color bar
-            plt.colorbar(format='%+02.0f dB')
+            # plt.subplot(2, 1, 2)
+            # # librosa.display.specshow(log_Sp, sr=sr, x_axis='time',
+            # #                          y_axis='mel')
+            #
+            # # Put a descriptive title on the plot
+            # plt.title('mel power spectrogram (Percussive)')
+            #
+            # # draw a color bar
+            # plt.colorbar(format='%+02.0f dB')
 
             # Make the figure layout compact
             plt.tight_layout()
@@ -175,6 +175,7 @@ class Spectrogram:
         spec = ('harmonic', log_Sh, y, sr)
         return spec
 
+    #depreciated - not using chromagram
     def chromagram(self, mp3='test.mp3', slice = True):
         if mp3[-4:] != '.mp3':
             print("could not load path:", mp3)
