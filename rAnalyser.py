@@ -22,9 +22,9 @@ class smRegAI(object):
     def teachMe(self,SongArr,Genre):
        # flatAudio = SongArr.flatten()
 
-        if randint(0,2)==1 :
-            self.testAudio+=[SongArr]
-            self.testResults += [dict[Genre]]
+        #if randint(0,2)==1 :
+        self.testAudio+=[SongArr]
+        self.testResults += [dict[Genre]]
 
       #  audioCol=numpy.array([flatAudio])
 
@@ -44,7 +44,7 @@ class smRegAI(object):
         tf.global_variables_initializer().run()
 
 
-        self.sess.run(train_step, feed_dict={self.x: SongArr, self.y_:[dict[Genre]]})
+        self.sess.run(train_step, feed_dict={self.x: [SongArr], self.y_:[dict[Genre]]})
     def predict(self,songArr):
        # flatAudio=songArr.flatten()
         prediction=tf.argmax(self.y,1)
@@ -53,7 +53,7 @@ class smRegAI(object):
     def checkAccuracy(self):
         correct_prediction = tf.equal(tf.argmax(self.y,1), tf.argmax(self.y_,1))
         accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
-        print(self.sess.run(accuracy, feed_dict={self.x: self.testAudio, self.y_: self.testResults}))
+        return self.sess.run(accuracy, feed_dict={self.x: self.testAudio, self.y_: self.testResults})
 
 class smRegAlog(object):
     def __init__(self,timeLen):
@@ -67,9 +67,11 @@ class smRegAlog(object):
     def predict(self,songTuple):
         for num in range(0,3):
             self.numpties[num].predict(songTuple[num])     #
-#test = smRegAI()
-#test.teachMe(audioArr,"dstep")
-#test.teachMe(audioArr,"dstep")
-#test.predict(audioArr)
-#test.checkAccuracy()
+test = smRegAI(128*8484)
+flataudio = audioArr.flatten()
+
+test.teachMe(flataudio,"dstep")
+test.teachMe(flataudio,"dstep")
+test.predict(flataudio)
+test.checkAccuracy()
 #audioArr
