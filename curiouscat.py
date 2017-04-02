@@ -96,40 +96,28 @@ def main():
             master_data.append(data_tuple)
             #print(data_tuple)
 
+        jsonify(master_data)
+
         ai = rAnalyser.smRegAlog(n)
         for data in master_data:
             ai.teachAI(data)
 
-def cat_samples(master_data):
-	'''
-	:param: master_data - list of tuples
-			each tuple contains 2 elements: tuple, genre
-				tuple: (mel, perc, harm)
-				genre: str
-	'''
-	# Initialize data lists
-	mel   = []
-	perc  = []
-	harm  = []
-	genre = []
-	n = len(data[0][0])
+def jsonify(master_data):
+    import codecs, json, time
 
-	# Decompose the data into genre and spec data, for list members (!genre) the dtype is ndarray
-	for data in master_data:
-		mel.append(data[0][0])
-		perc.append(data[0][1])
-		harm.append(data[0][2])
-		genre.append(data[1])
+    json_list = []
+    for data_tuple in master_data:
+        spec_list = []
+        for spec in data_tuple[0]:
+            print(type(spec))
+            np_to_list = spec.tolist()
+            spec_list.append(np_to_list)
+        json_list.extend( [spec_list, data_tuple[1], data_tuple[2]] )
 
-	# Now we have lists of either 1D arrays (mel, perc, harm) or str (genre)
-	# Next we convert each list to a ndarray
-	mel   = np.reshape(mel,  ncol=n) #vec2matrix
-	perc  = np.reshape(perc, ncol=n)
-	harm  = np.reshape(harm, ncol=n)
-	genre = np.reshape(genre,ncol=n)
-
-	data = ((mel, perc, harm), genre)
-	return data
+    file_path = "dumps/dump_{}.json".format(time.strftime("%Y%m%d-%H%M%S"))
+    print("dumped to", file_path)
+    ## your path variable
+    json.dump(json_list, codecs.open(file_path, 'w', encoding='utf-8'), separators=(',', ':'), sort_keys=True, indent=4) ### this saves the array in .json format
 
 def display_sg(data_tuple):
     plt.figure(figsize=(12, 4))
