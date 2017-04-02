@@ -56,7 +56,7 @@ def main():
         print ('Loaded {} songs and {} genres'.format(len(songs),n_genres))
         #shuffle(songs)
         sg = Spectrogram(display=False, trim=True, slice=False,
-                         offset=50, duration=90)
+                         offset=50, duration=55)
 
         n = sys.argv[3]
         master_data = []  # master list of data
