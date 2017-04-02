@@ -60,7 +60,7 @@ class Spectrogram:
             # plt.savefig(mp3 + '.png')
 
         # generate tuple of S and log_S
-        spec = ('mels', S, y, sr,)
+        spec = ('mels', S, y, sr)
         return spec
 
     def perc_spectrogram(self, mp3='test.mp3'):
@@ -110,7 +110,7 @@ class Spectrogram:
             plt.show()
 
         # generate tuple of S and log_S
-        spec = ('percussion', log_Sp, y, sr,)
+        spec = ('percussion', log_Sp, y, sr)
         return spec
 
     def harm_spectrogram(self, mp3='test.mp3'):
