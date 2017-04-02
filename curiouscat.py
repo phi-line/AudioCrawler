@@ -31,30 +31,39 @@ def main():
     if sys.argv[1] == '-train':
         songs_list = os.listdir(sys.argv[3])
         print(songs_list)
-        sg = Spectrogram(display=True)
+        sg = Spectrogram(display=False)
         pp = preProcess()
         for f in songs_list:
             #extract the mel perc and chroma specs
             #take all numpy data and concatenate eg: {[mel], [perc], [chroma]}
             #compute each through nn
-            print(f)
+
+            update = update_info(f, 4)
+
+
+            print(update.next(), end='\r')
             spec_master = []
             mel_spec = sg.mel_spectrogram(mp3=os.path.join(sys.argv[3], f))
             #mel_slice = sg.process_np_data(mel_spec[1]) #process S data
             spec_master.append(mel_spec)
             #display_sg((spec[0],slice,spec[2],spec[3]))
 
+            print(update.next(), end='\r')
             perc_spec = sg.perc_spectrogram(mp3=os.path.join(sys.argv[3], f))
             #perc_slice = sg.process_np_data(perc_spec[1]) #process logSp data
             spec_master.append(perc_spec)
 
+            print(update.next(), end='\r')
             harm_spec = sg.harm_spectrogram(mp3=os.path.join(sys.argv[3], f))
             #harm_slice = sg.process_np_data(harm_spec[1]) #process logSh data
             spec_master.append(harm_spec)
 
+            print(update.next(), end='\r')
             chroma_spec = sg.chromagram(mp3=os.path.join(sys.argv[3], f))
             #chroma_slice = sg.process_np_data(chroma_spec[1]) #process C data
             spec_master.append(chroma_spec)
+
+            print("\n\r", end="")
 
             #print(spec_master)
 
@@ -74,6 +83,26 @@ def display_sg(data_tuple):
     plt.tight_layout()
 
     plt.show()
+
+class update_info(object):
+    def __init__(self, song, n):
+        self.song = song
+        self.n = n
+        self.num = 0
+
+    def __iter__(self):
+        return self
+
+    def __next__(self):
+        return self.next()
+
+    def next(self):
+        if self.num < self.n:
+            cur = '{0} [{1}/{2}]'.format(self.song, self.num, self.n)
+            self.num += 1
+            return cur
+        else:
+            raise StopIteration()
 
 if __name__ == '__main__':
     main()

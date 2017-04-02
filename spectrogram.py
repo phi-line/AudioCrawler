@@ -33,11 +33,12 @@ class Spectrogram:
             return
         else:
             y, sr = librosa.load(path=mp3)
-            if slice:
-                y = self.process_y_data(y)
 
         # Let's make and display a mel-scaled power (energy-squared) spectrogram
         S = librosa.feature.melspectrogram(y, sr=sr, n_mels=128)
+
+        if slice:
+            S = self.process_np_data(S)
 
         # Convert to log scale (dB). We'll use the peak power as reference.
         log_S = librosa.logamplitude(S, ref_power=np.max)
@@ -72,18 +73,19 @@ class Spectrogram:
             return
         else:
             y, sr = librosa.load(path=mp3)
-            if slice:
-                y = self.process_y_data(y)
 
         y_harmonic, y_percussive = librosa.effects.hpss(y)
 
         # What do the spectrograms look like?
         # Let's make and display a mel-scaled power (energy-squared) spectrogram
-        S_harmonic = librosa.feature.melspectrogram(y_harmonic, sr=sr)
+        #S_harmonic = librosa.feature.melspectrogram(y_harmonic, sr=sr)
         S_percussive = librosa.feature.melspectrogram(y_percussive, sr=sr)
 
+        if slice:
+            S_percussive = self.process_np_data(S_percussive)
+
         # Convert to log scale (dB). We'll use the peak power as reference.
-        log_Sh = librosa.logamplitude(S_harmonic, ref_power=np.max)
+        #log_Sh = librosa.logamplitude(S_harmonic, ref_power=np.max)
         log_Sp = librosa.logamplitude(S_percussive, ref_power=np.max)
 
         # display
@@ -93,7 +95,7 @@ class Spectrogram:
 
             plt.subplot(2, 1, 1)
             # Display the spectrogram on a mel scale
-            librosa.display.specshow(log_Sh, sr=sr, y_axis='mel')
+            #librosa.display.specshow(log_Sh, sr=sr, y_axis='mel')
 
             # Put a descriptive title on the plot
             plt.title('mel power spectrogram (Harmonic)')
@@ -125,19 +127,20 @@ class Spectrogram:
             return
         else:
             y, sr = librosa.load(path=mp3)
-            if slice:
-                y = self.process_y_data(y)
 
         y_harmonic, y_percussive = librosa.effects.hpss(y)
 
         # What do the spectrograms look like?
         # Let's make and display a mel-scaled power (energy-squared) spectrogram
         S_harmonic = librosa.feature.melspectrogram(y_harmonic, sr=sr)
-        S_percussive = librosa.feature.melspectrogram(y_percussive, sr=sr)
+        #S_percussive = librosa.feature.melspectrogram(y_percussive, sr=sr)
+
+        if slice:
+            S_harmonic = self.process_np_data(S_harmonic)
 
         # Convert to log scale (dB). We'll use the peak power as reference.
         log_Sh = librosa.logamplitude(S_harmonic, ref_power=np.max)
-        log_Sp = librosa.logamplitude(S_percussive, ref_power=np.max)
+        #log_Sp = librosa.logamplitude(S_percussive, ref_power=np.max)
 
         # display
         if self.display:
@@ -155,8 +158,8 @@ class Spectrogram:
             plt.colorbar(format='%+02.0f dB')
 
             plt.subplot(2, 1, 2)
-            librosa.display.specshow(log_Sp, sr=sr, x_axis='time',
-                                     y_axis='mel')
+            # librosa.display.specshow(log_Sp, sr=sr, x_axis='time',
+            #                          y_axis='mel')
 
             # Put a descriptive title on the plot
             plt.title('mel power spectrogram (Percussive)')
@@ -169,7 +172,7 @@ class Spectrogram:
             plt.show()
 
         # generate tuple of S and log_S
-        spec = ('harmonic', log_Sp, y, sr)
+        spec = ('harmonic', log_Sh, y, sr)
         return spec
 
     def chromagram(self, mp3='test.mp3', slice = True):
@@ -178,15 +181,16 @@ class Spectrogram:
             return
         else:
             y, sr = librosa.load(path=mp3)
-            # if slice:
-            #     y = self.process_y_data(y)
 
         y_harmonic, y_percussive = librosa.effects.hpss(y)
 
         # What do the spectrograms look like?
         # Let's make and display a mel-scaled power (energy-squared) spectrogram
         S_harmonic = librosa.feature.melspectrogram(y_harmonic, sr=sr)
-        S_percussive = librosa.feature.melspectrogram(y_percussive, sr=sr)
+        #S_percussive = librosa.feature.melspectrogram(y_percussive, sr=sr)
+
+        if slice:
+            S_harmonic = self.process_np_data(S_harmonic)
 
         # We'll use a CQT-based chromagram here.  An STFT-based implementation also exists in chroma_cqt()
         # We'll use the harmonic component to avoid pollution from transients
@@ -279,10 +283,10 @@ class Spectrogram:
         REC_SCALE = 32  # the number of X steps to record from start
 
         pp = preProcess()
-        print(np_arr.shape)
+        #print(np_arr.shape)
         half = int(len(np_arr) * PERCENT_REC)
         slice = np_arr[:, half:(half + REC_SCALE)]
-        print(slice.shape)
+        #print(slice.shape)
         return pp.z_norm(slice)
 
 #old main code
