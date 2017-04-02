@@ -10,6 +10,7 @@ print (audioArr.shape)
 flatAudio = audioArr.flatten()
 
 audioCol=numpy.array([flatAudio,flatAudio])
+print (audioCol)
 x = tf.placeholder(tf.float32, [None, 128*8484])
 
 audioTens = tf.placeholder(tf.float32)
@@ -31,7 +32,9 @@ ye = numpy.array([[0,0,1],[0,0,1]])
 
 sess.run(train_step, feed_dict={x: audioCol, y_: ye})
 
+prediction=tf.argmax(y,1)
+print (prediction.eval(feed_dict={x: [flatAudio]}))
 
-correctTest = tf.equal(tf.argmax(y,1), tf.argmax(y_,1))
-print(sess.run(correctTest,{x: audioCol, y_: ye}))
+
+
 
