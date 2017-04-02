@@ -22,15 +22,15 @@ from spectrogram import Spectrogram
 from preprocess import preProcess
 
 def main():
-    if len(sys.argv) < 3:
-        print ('Error: invalid number of arguments')
-        print ('Usage: spectrogram.py TYPE PATH')
-        print ('Types: mel | perc | chroma | beat')
+    if len(sys.argv) != 4:
+        print ('Error: invalid number of arguments in', sys.argv)
+        print ('Usage: spectrogram.py -train GENRE PATH')
+        print ('Genres: dnb | house | dstep')
         sys.exit()
-
 
     if sys.argv[1] == '-train':
         songs_list = os.listdir(sys.argv[3])
+        print(songs_list)
         sg = Spectrogram()
         for f in songs_list:
             #extract the mel perc and chroma specs
@@ -38,27 +38,24 @@ def main():
             #compute each through nn
             print(f)
             spec_master = []
-            if sys.argv[2] == 'mel':
-                spec = sg.mel_spectrogram(mp3=os.path.join(sys.argv[3], f))
-                slice = process_np_data(spec[1]) #process S data
-                spec_master.append(slice)
-                #display_sg((spec[0],slice,spec[2],spec[3]))
-            elif sys.argv[2] == 'perc':
-                spec = sg.perc_spectrogram(mp3=os.path.join(sys.argv[3], f))
-                slice = process_np_data(spec[1])
-                spec_master.append(slice)
-            elif sys.argv[2] == 'chroma':
-                spec = sg.chromagram(mp3=os.path.join(sys.argv[3], f))
-                slice = process_np_data(spec[1])
-                spec_master.append(slice)
-            elif sys.argv[2] == 'beat':
-                spec = sg.beat_gram(mp3=os.path.join(sys.argv[3], f))
-                slice = process_np_data(spec[1])
-                spec_master.append(slice)
-            else:
-                print('Invalid type given:', sys.argv[1])
-                print('Types: mel | perc | chroma | beat')
-        print(spec_master)
+            mel_spec = sg.mel_spectrogram(mp3=os.path.join(sys.argv[3], f))
+            mel_slice = process_np_data(mel_spec[1]) #process S data
+            spec_master.append(mel_slice)
+            #display_sg((spec[0],slice,spec[2],spec[3]))
+
+            perc_spec = sg.perc_spectrogram(mp3=os.path.join(sys.argv[3], f))
+            perc_slice = process_np_data(perc_spec[1]) #process logSp data
+            spec_master.append(perc_slice)
+
+            harm_spec = sg.harm_spectrogram(mp3=os.path.join(sys.argv[3], f))
+            harm_slice = process_np_data(harm_spec[1]) #process logSh data
+            spec_master.append(harm_slice)
+
+            chroma_spec = sg.chromagram(mp3=os.path.join(sys.argv[3], f))
+            chroma_slice = process_np_data(chroma_spec[1]) #process C data
+            spec_master.append(chroma_slice)
+
+            print(spec_master)
 
 
 PERCENT_REC = .4 #the percentage of the np array to capture from
