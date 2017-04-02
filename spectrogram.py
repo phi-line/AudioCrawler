@@ -22,10 +22,10 @@ class Spectrogram:
         this function displays a mel spectrogram .csv of the mp3 data
         :return: ('mel', y, sr, S, log_S)
         :   'mel': str
-        :   y    : ndarray
-        :   sr   : int
         :   S    : ndarray
+        :   y    : ndarray
         :   log_S: ndarray
+        :   sr   : int
         '''
         if mp3[-4:] != '.mp3':
             print("could not load path:", mp3)
@@ -61,7 +61,8 @@ class Spectrogram:
             # plt.savefig(mp3 + '.png')
 
         # generate tuple of S and log_S
-        spec = ('mels', y, sr, S, log_S)
+        #spec = ('mels', S, sr, y, log_S)
+        spec = ('mels', S, sr)
         return spec
 
     def perc_spectrogram(self, mp3='test.mp3'):
