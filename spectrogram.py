@@ -294,15 +294,12 @@ class Spectrogram:
         '''
         this function takes in the y data, 
         '''
-        # load file
-        y, sr = librosa.load('test.mp3')
-
         # use pre-computed onset envelope
-        o_env = librosa.onset.onset_strength(y, sr=sr)
+        o_env = librosa.onset.onset_strength(y_arr, sr=sr)
         size = o_env.shape[0]
 
         # take middle 20% and trim the rest
-        start    = int((size*.8)/2)
+        start    = int((size*.3)/2)
         stop     = int(size-start)
         new_env  = o_env[start:stop]
         n_chunks = int(len(new_env)/32)
@@ -330,8 +327,16 @@ class Spectrogram:
         diff_index, diff_val = max(enumerate(chunk_means), key=operator.itemgetter(1))
         chunks_oi = (diff_index*2, diff_index*2+1)
 
+        # get interval percentages
+        start_percent = (start+chunks_oi[0]*32)/size
+        stop_percent  = 1-(size-(start+chunks_oi[1]*32))/size
+
+        y_length = y.shape[0]
+        y_start  = int(y_length*start_percent)
+        y_stop   = int(y_length*stop_percent)
+
         # get slice and return
-        slice = new_env[chunks_oi[0]*32:chunks_oi[1]*32]
+        slice = y[y_start:y_stop]
         return slice
 
 
