@@ -52,7 +52,7 @@ class smRegAI(object):
        # flatAudio=songArr.flatten()
         prediction=tf.argmax(self.y,1)
         #print (self.sess.run(self.y,feed_dict={self.x: [flatAudio]}))
-        print (prediction.eval(feed_dict={self.x:songArr, self.y_:}))
+        #print (prediction.eval(feed_dict={self.x:songArr, self.y_:}))
    # def checkAccuracy(self):
     #    correct_prediction = tf.equal(tf.argmax(self.y,1), tf.argmax(self.y_,1))
      #   accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))

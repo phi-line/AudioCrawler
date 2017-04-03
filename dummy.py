@@ -1,5 +1,7 @@
 # LSTM for sequence classification in the IMDB dataset
 import numpy as np
+import keras
+
 from keras.datasets import imdb
 from keras.models import Sequential
 from keras.layers import Dense
@@ -10,7 +12,12 @@ from keras.preprocessing import sequence
 np.random.seed(7)
 # load the dataset but only keep the top n words, zero the rest
 top_words = 5000
-(X_train, y_train), (X_test, y_test) = imdb.load_data(nb_words=top_words)
+
+from sklearn.model_selection import train_test_split
+#X, y = np.arrange(10).reshape((5, 2)), range(5)
+def get_data()
+#mnumpy array with the features and the labels
+(X_train, y_train), (X_test, y_test) = 50 #imdb.load_data(nb_words=top_words)
 # truncate and pad input sequences
 max_review_length = 500
 X_train = sequence.pad_sequences(X_train, maxlen=max_review_length)
