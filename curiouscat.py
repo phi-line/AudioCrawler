@@ -19,8 +19,8 @@ import matplotlib.pyplot as plt
 import librosa
 import librosa.display
 
-import rAnalyser
-import rAnalyserLargeTuple
+# import rAnalyser
+# import rAnalyserLargeTuple
 
 from glob import glob
 
@@ -55,10 +55,10 @@ def main():
         #songs = os.listdir(sys.argv[3])
         print ('Loaded {} songs and {} genres'.format(len(songs),n_genres))
         #shuffle(songs)
-        sg = Spectrogram(display=True, trim=True, slice=False,
-                         offset=50, duration=60)
+        n = int(sys.argv[3])
+        sg = Spectrogram(display=0, slice=1, n=n, trim=1,
+                         offset=50, duration=120)
 
-        n = sys.argv[3]
         master_data = []  # master list of data
 
         i = 1
@@ -85,20 +85,17 @@ def main():
             harm_spec = sg.harm_spectrogram(mp3=f[0])
             spec_master.append(harm_spec)
 
-            #chroma
-            # print(update.next(), end='\r')
-            # chroma_spec = sg.chromagram(mp3=os.path.join(sys.argv[2], f))
-            # spec_master.append(chroma_spec)
-            #print("\n\r", end="")
             sys.stdout.write('\x1b[2K\r')
             i += 1
 
             #n = mel_spec[1].shape[1]
-
             #((mel, perc, harm), genre, n)
-            data_tuple = (tuple(spec_master), genre, n)
+            #data_tuple = (tuple(spec_master), genre, n)
 
-            #nm_model = train_model(data_tuple[0][0][1], data_tuple[1])
+            #(mel, perc, harm, genre, n)
+            data_tuple = tuple(spec_master)
+
+            nm_model = train_model(data_tuple[0][0], genre)
             master_data.append(data_tuple)
             #print(data_tuple)
 
@@ -112,6 +109,119 @@ def main():
         #ai = rAnalyser.smRegAlog() #n
         # for data in master_data:
         #     ai.teachAI(data)
+
+def train_model(x_np_array, y_genre):
+    # LSTM for sequence classification in the IMDB dataset
+    import numpy as np
+    import keras
+
+    from keras.datasets import imdb
+    from keras.models import Sequential
+    from keras.layers import Dense
+    from keras.layers import LSTM
+    from keras.layers.embeddings import Embedding
+    from keras.preprocessing import sequence
+    # fix random seed for reproducibility
+    np.random.seed(7)
+    # load the dataset but only keep the top n words, zero the rest
+    top_words = 5000
+
+    from sklearn.model_selection import train_test_split
+    # X, y = np.arrange(10).reshape((5, 2)), range(5)
+
+    X_train, x_test, y_train, y_test = train_test_split(x_np_array, 128,
+                                                        test_size = .33)
+
+    layer_sizes = [300,144,36]
+
+    # Keras uses the Sequential model for linear stacking of layers.
+    # That is, creating a neural network is as easy as (later) defining the layers!
+    from keras.models import Sequential
+    model = Sequential()
+
+    # Use the dropout regularization method
+    from keras.layers import Dropout
+
+    # Now that we have the model, let's add some layers:
+    from keras.layers.core import Dense, Activation
+    # Everything we've talked about in class so far is referred to in
+    # Keras as a "dense" connection between layers, where every input
+    # unit connects to a unit in the next layer
+
+    # First a fully-connected (Dense) hidden layer with appropriate input
+    # dimension, 577 INPUTS AND 300 OUTPUTS, and ReLU activation
+    # THIS IS THE INPUT LAYER
+    model.add(Dense(
+        input_dim=X_train.shape[1], output_dim=layer_sizes[0]
+    ))
+    model.add(Activation('relu'))
+
+    # ADD DROPOUT --> MUST DECIDE PERCENTAGE OF INPUT UNITS TO DROPOUT
+    model.add(Dropout(.2))
+
+    # Now our second hidden layer with 300 inputs (from the first
+    # hidden layer) and 144 outputs. Also with ReLU activation
+    # THIS IS HIDDEN LAYER
+    model.add(Dense(
+        input_dim=layer_sizes[0], output_dim=layer_sizes[1]
+    ))
+    model.add(Activation('relu'))
+
+    # ADD DROPOUT
+    model.add(Dropout(.2))
+
+    # THIRD HIDDEN LAYER WITH 144 INPUTS AND 36 OUTPUTS, RELU ACTIVATION
+    # Also with ReLU activation
+    # THIS IS HIDDEN LAYER
+    model.add(Dense(
+        input_dim=layer_sizes[1], output_dim=layer_sizes[2]
+    ))
+    model.add(Activation('relu'))
+
+    # ADD DROPOUT
+    model.add(Dropout(.2))
+
+    # Finally, add a readout layer, mapping the 5 hidden units
+    # to two output units using the softmax function
+    # THIS IS OUR OUTPUT LAYER
+    model.add(Dense(output_dim=np.unique(y_train).shape[0], init='uniform'))
+    model.add(Activation('softmax'))
+
+    # Next we let the network know how to learn
+    from keras.optimizers import SGD
+    sgd = SGD(lr=0.001, decay=1e-7, momentum=.9)
+    model.compile(loss='categorical_crossentropy', optimizer=sgd)
+
+    # Before we can fit the network, we have to one-hot vectorize our response.
+    # Fortunately, there is a keras method for that.
+    from keras.utils.np_utils import to_categorical
+    # for each of our 8 categories, map an output
+    # Must first convert each category string to consistent ints
+    from sklearn.preprocessing import LabelEncoder
+    encoder = LabelEncoder()
+    encoder.fit(y_train)
+    np.save('classes.npy', encoder.classes_)
+    encoded_y_train = encoder.transform(y_train)
+    encoded_y_test = encoder.transform(y_test)
+    y_train_vectorized = to_categorical(encoded_y_train)
+
+    # print out shape
+    # y_train_vectorized.shape
+
+    # remember that the bigger the nb_epoch the better the fit (so go bigger than 50)
+    model.fit(X_train, y_train_vectorized, nb_epoch=1000, batch_size=20,
+              verbose=0)
+
+    # now our neural network works like a scikit-learn classifier
+    proba = model.predict_proba(X_test, batch_size=32)
+
+    # Print the accuracy:
+    from sklearn.metrics import accuracy_score
+    classes = np.argmax(proba, axis=1)
+    print("The neural network model has an accuracy score of:",
+          accuracy_score(encoded_y_test, classes))
+
+    return model
 
 def cat_samples(master_data):
     '''
@@ -205,120 +315,6 @@ class update_info(object):
             return cur
         else:
             raise StopIteration()
-
-def train_model(x_np_array, y_genre):
-    # LSTM for sequence classification in the IMDB dataset
-    import numpy as np
-    import keras
-
-    from keras.datasets import imdb
-    from keras.models import Sequential
-    from keras.layers import Dense
-    from keras.layers import LSTM
-    from keras.layers.embeddings import Embedding
-    from keras.preprocessing import sequence
-    # fix random seed for reproducibility
-    np.random.seed(7)
-    # load the dataset but only keep the top n words, zero the rest
-    top_words = 5000
-
-    from sklearn.model_selection import train_test_split
-    # X, y = np.arrange(10).reshape((5, 2)), range(5)
-
-    X_train, x_test, y_train, y_test = \
-        train_test_split(x_np_array, y_genre, test_size = .33)
-
-    layer_sizes = [300,144,36]
-
-    # Keras uses the Sequential model for linear stacking of layers.
-    # That is, creating a neural network is as easy as (later) defining the layers!
-    from keras.models import Sequential
-    model = Sequential()
-
-    # Use the dropout regularization method
-    from keras.layers import Dropout
-
-    # Now that we have the model, let's add some layers:
-    from keras.layers.core import Dense, Activation
-    # Everything we've talked about in class so far is referred to in
-    # Keras as a "dense" connection between layers, where every input
-    # unit connects to a unit in the next layer
-
-    # First a fully-connected (Dense) hidden layer with appropriate input
-    # dimension, 577 INPUTS AND 300 OUTPUTS, and ReLU activation
-    # THIS IS THE INPUT LAYER
-    model.add(Dense(
-        input_dim=X_train.shape[1], output_dim=layer_sizes[0]
-    ))
-    model.add(Activation('relu'))
-
-    # ADD DROPOUT --> MUST DECIDE PERCENTAGE OF INPUT UNITS TO DROPOUT
-    model.add(Dropout(.2))
-
-    # Now our second hidden layer with 300 inputs (from the first
-    # hidden layer) and 144 outputs. Also with ReLU activation
-    # THIS IS HIDDEN LAYER
-    model.add(Dense(
-        input_dim=layer_sizes[0], output_dim=layer_sizes[1]
-    ))
-    model.add(Activation('relu'))
-
-    # ADD DROPOUT
-    model.add(Dropout(.2))
-
-    # THIRD HIDDEN LAYER WITH 144 INPUTS AND 36 OUTPUTS, RELU ACTIVATION
-    # Also with ReLU activation
-    # THIS IS HIDDEN LAYER
-    model.add(Dense(
-        input_dim=layer_sizes[1], output_dim=layer_sizes[2]
-    ))
-    model.add(Activation('relu'))
-
-    # ADD DROPOUT
-    model.add(Dropout(.2))
-
-    # Finally, add a readout layer, mapping the 5 hidden units
-    # to two output units using the softmax function
-    # THIS IS OUR OUTPUT LAYER
-    model.add(Dense(output_dim=np.unique(y_train).shape[0], init='uniform'))
-    model.add(Activation('softmax'))
-
-    # Next we let the network know how to learn
-    from keras.optimizers import SGD
-    sgd = SGD(lr=0.001, decay=1e-7, momentum=.9)
-    model.compile(loss='categorical_crossentropy', optimizer=sgd)
-
-    # Before we can fit the network, we have to one-hot vectorize our response.
-    # Fortunately, there is a keras method for that.
-    from keras.utils.np_utils import to_categorical
-    # for each of our 8 categories, map an output
-    # Must first convert each category string to consistent ints
-    from sklearn.preprocessing import LabelEncoder
-    encoder = LabelEncoder()
-    encoder.fit(y_train)
-    np.save('classes.npy', encoder.classes_)
-    encoded_y_train = encoder.transform(y_train)
-    encoded_y_test = encoder.transform(y_test)
-    y_train_vectorized = to_categorical(encoded_y_train)
-
-    # print out shape
-    # y_train_vectorized.shape
-
-    # remember that the bigger the nb_epoch the better the fit (so go bigger than 50)
-    model.fit(X_train, y_train_vectorized, nb_epoch=1000, batch_size=20,
-              verbose=0)
-
-    # now our neural network works like a scikit-learn classifier
-    proba = model.predict_proba(X_test, batch_size=32)
-
-    # Print the accuracy:
-    from sklearn.metrics import accuracy_score
-    classes = np.argmax(proba, axis=1)
-    print("The neural network model has an accuracy score of:",
-          accuracy_score(encoded_y_test, classes))
-
-    return model
-
 
 if __name__ == '__main__':
     main()

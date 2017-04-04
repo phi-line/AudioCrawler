@@ -18,12 +18,12 @@ import operator
 from preprocess import preProcess
 
 class Spectrogram:
-    def __init__(self, display = False, trim = True, slice = False, offset =
-    30,
-                 duration=60):
+    def __init__(self, display = False, slice = False, n=32,
+                 trim = True, offset = 30, duration=60):
         self.display = display
-        self.trim = trim
         self.slice = slice
+        self.n = n
+        self.trim = trim
         self.offset = offset
         self.duration = duration
 
@@ -80,10 +80,10 @@ class Spectrogram:
             # plt.savefig(mp3 + '.png')
 
         # generate tuple of S and log_S
-        spec = ('mels', S, y, sr)
+        spec = (S, y, sr)
         return spec
 
-    def perc_spectrogram(self, mp3='test.mp3', slice = True):
+    def perc_spectrogram(self, mp3='test.mp3'):
         if mp3[-4:] != '.mp3':
             print("could not load path:", mp3)
             return
@@ -143,10 +143,10 @@ class Spectrogram:
             plt.show()
 
         # generate tuple of S and log_S
-        spec = ('percussion', log_Sp, y, sr)
+        spec = (log_Sp, y, sr)
         return spec
 
-    def harm_spectrogram(self, mp3='test.mp3', slice = True):
+    def harm_spectrogram(self, mp3='test.mp3'):
         if mp3[-4:] != '.mp3':
             print("could not load path:", mp3)
             return
@@ -206,7 +206,7 @@ class Spectrogram:
             plt.show()
 
         # generate tuple of S and log_S
-        spec = ('harmonic', log_Sh, y, sr)
+        spec = (log_Sh, y, sr)
         return spec
 
     #depreciated - not using chromagram
@@ -336,15 +336,15 @@ class Spectrogram:
         start    = 0 #int((size*.3)/2)
         stop     = size #int(size-start)
         new_env  = o_env[start:stop]
-        n_chunks = int(len(new_env)/32)
+        n_chunks = int(len(new_env)/self.n)
         if n_chunks%2!=0: # ensure even parity
             n_chunks+=1
 
         # split into chunks of 32
         chunks = []; counter = 0
         for c in range(n_chunks):
-            chunks.append(new_env[counter:counter+32])
-            counter += 32
+            chunks.append(new_env[counter:counter+self.n])
+            counter += self.n
 
         # compute average for each chunk
         chunk_means = []
@@ -362,8 +362,8 @@ class Spectrogram:
         chunks_oi = (diff_index*2, diff_index*2+1)
 
         # get interval percentages
-        start_percent = (start+chunks_oi[0]*32)/size
-        stop_percent  = 1-(size-(start+chunks_oi[1]*32))/size
+        start_percent = (start+chunks_oi[0]*self.n)/size
+        stop_percent  = 1-(size-(start+chunks_oi[1]*self.n))/size
 
         y_length = y_arr.shape[0]
         y_start  = int(y_length*start_percent)
